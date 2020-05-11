@@ -1,0 +1,294 @@
+/*
+ * Service apply rules.
+ *
+ * The CheckCommand objects `ping4`, `ping6`, etc
+ * are provided by the plugin check command templates.
+ * Check the documentation for details.
+ *
+ * Tip: Use `icinga2 object list --type Service` to
+ * list all service objects after running
+ * configuration validation (`icinga2 daemon -C`).
+ */
+
+/*
+ * This is an example host based on your
+ * local host's FQDN. Specify the NodeName
+ * constant in `constants.conf` or use your
+ * own description, e.g. "db-host-1".
+ */
+
+/*
+ * These are generic `ping4` and `ping6`
+ * checks applied to all hosts having the
+ * `address` resp. `address6` attribute
+ * defined.
+ */
+apply Service "Ping IPv4" {
+  import "generic-service"
+
+  check_command = "ping4"
+
+  assign where host.address
+}
+
+apply Service "Ping IPv6" {
+  import "generic-service"
+
+  check_command = "ping6"
+
+  assign where host.address6
+}
+
+/*
+ * Apply the `ssh` service to all hosts
+ * with the `address` attribute defined and
+ * the custom attribute `os` set to `Linux`.
+ */
+apply Service "SSH" {
+  import "generic-service"
+
+  check_command = "ssh"
+
+  assign where (host.address || host.address6) && (host.vars.os == "Linux" || host.vars.os == "FreeBSD")
+}
+
+
+
+apply Service for (http_vhost => config in host.vars.http_vhosts) {
+  import "generic-service"
+
+  check_command = "http"
+
+  vars += config
+}
+
+apply Service for (disk => config in host.vars.disks) {
+  import "generic-service"
+
+  check_command = "disk"
+
+  vars += config
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service "Icinga" {
+  import "generic-service"
+
+  check_command = "icinga"
+
+  assign where host.name == NodeName
+}
+
+apply Service "System Load" {
+  import "generic-service"
+
+  check_command = "load"
+
+  /* Used by the ScheduledDowntime apply rule in `downtimes.conf`. */
+  /* vars.backup_downtime = "02:00-03:00" */
+
+  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.vm_type != "lxc" && host.vars.check_load != false && !host.vars.nrpe
+
+  # vars.notifications_disable = true
+  max_check_attempts = 120
+  retry_interval = 1m
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service "Running Processes" {
+  import "generic-service"
+
+  check_command = "procs"
+
+  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.distro != "Proxmox" && !host.vars.nrpe
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service "Swap" {
+  import "generic-service"
+
+  check_command = "swap"
+
+  assign where host.vars.check_swap != false && (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.vm_type != "lxc" && !host.vars.nrpe
+
+  max_check_attempts = 120
+  retry_interval = 1m
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service "Logged Users" {
+  import "generic-service"
+
+  check_command = "users"
+
+  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && !host.vars.nrpe
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service for (ftp => config in host.vars.ftp) {
+  import "generic-service"
+
+  check_command = "ftp"
+
+  vars += config
+}
+
+apply Service for (tcp => config in host.vars.tcp) {
+  import "generic-service"
+
+  check_command = "tcp"
+
+  vars += config
+
+  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service for (procs => config in host.vars.procs) {
+  import "generic-service"
+
+  check_command = "procs"
+
+  vars += config
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service "Cron Daemon" {
+  import "generic-service"
+  check_command = "procs"
+
+  if (host.vars.distro == "CentOS" || host.vars.distro == "Redhat") {
+    vars.procs_command = "crond"
+  } else {
+    vars.procs_command = "cron"
+  }
+
+  vars.procs_critical = "1:"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+
+  assign where host.vars.os == "Linux" && host.vars.check_cron != false
+}
+
+apply Service "Rsyslog Daemon" {
+  import "generic-service"
+  check_command = "procs"
+
+  vars.procs_command = "rsyslogd"
+  vars.procs_critical = "1:"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+
+  assign where host.vars.os == "Linux" && host.vars.check_rsyslogd != false
+}
+
+apply Service "SNMP Daemon" {
+  import "generic-service"
+  check_command = "procs"
+
+  vars.procs_command = "snmpd"
+  vars.procs_critical = "1:"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+
+  assign where host.vars.os == "Linux" && host.vars.check_snmpd != false
+}
+
+apply Service for (simap => config in host.vars.simap) {
+  import "generic-service"
+
+  check_command = "simap"
+
+  vars += config
+}
+
+apply Service for (mysql => config in host.vars.mysql) {
+  import "generic-service"
+  check_command = "mysql"
+  vars += config
+}
+
+apply Service "APT Packages Updates" {
+  import "generic-service"
+
+  check_command = "apt"
+
+  assign where host.vars.distro == "Debian" || host.vars.distro == "Proxmox" || host.vars.distro == "Ubuntu"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service for (dns => config in host.vars.dns) {
+  import "generic-service"
+  check_command = "dns"
+  vars += config
+}
+
+apply Service "NRPE Service" {
+  import "generic-service"
+  check_command = "nrpe"
+  assign where host.vars.nrpe
+}
+
+apply Service for (nrpe => config in host.vars.nrpe) {
+  import "generic-service"
+  check_command = "nrpe"
+  vars += config
+}
+
+apply Service "DNS Resolution" {
+  import "generic-service"
+
+  check_command = "dns"
+
+  assign where host.vars.os == "Linux"
+
+  vars.dns_lookup = "www.google.com"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+apply Service "Local date/time" {
+  import "generic-service"
+
+  check_command = "ntp_time"
+
+  assign where host.vars.os == "Linux"
+
+  vars.ntp_address = "ntp.ien.it"
+  vars.ntp_warning = "0.5"
+  vars.ntp_critical = "1"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}

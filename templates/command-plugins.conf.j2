@@ -1,0 +1,17 @@
+object CheckCommand "_memory" {
+        command = [ PluginDir + "/check_memory" ]
+
+        arguments = {
+                "-w" = {
+                        value = "$memory_warning$"
+                        description = "Percent free/used when to warn"
+                }
+                "-c" = {
+                        value = "$memory_critical$"
+                        description = "Percent free/used when critical"
+                }
+        }
+
+        vars.memory_warning = "20%"
+        vars.memory_critical = "10%"
+}

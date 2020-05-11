@@ -1,2 +1,2 @@
 ---
-# tasks file for mmartinello.icinga2-plugins
+- import_tasks: plugins.yml
