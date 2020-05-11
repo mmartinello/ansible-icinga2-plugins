@@ -19,8 +19,8 @@
 
 - name: Deploy Icinga Custom Plugins
   synchronize:
-    src: "{{ plugins_src_dir }}/"
-    dest: "{{ plugins_dest_dir }}"
+    src: "{{ icinga2_plugins_src_dir }}/"
+    dest: "{{ icinga2_plugins_dest_dir }}"
     delete: yes
     recursive: yes
 
@@ -31,31 +31,31 @@
 
 - name: Ensure that CustomPluginsDir constant is defined
   lineinfile:
-    path: "{{ config_root_dir }}/{{ constants_config_file }}"
-    line: "const CustomPluginsDir = \"{{ plugins_dest_dir }}\""
+    path: "{{ icinga2_config_root_dir }}/{{ icinga2_constants_config_file }}"
+    line: "const CustomPluginsDir = \"{{ icinga2_plugins_dest_dir }}\""
 
 - name: Deploy Icinga Default Plugins configuration file
   template:
     src: "templates/command-plugins.conf.j2"
-    dest: "{{ config_root_dir }}/{{ custom_confd_dir }}/command-plugins.conf"
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_custom_confd_dir }}/command-plugins.conf"
 
 - name: Deploy Icinga Custom Plugins configuration file
   template:
     src: "{{ item.src }}"
-    dest: "{{ config_root_dir }}/{{ custom_confd_dir }}/{{ item.dest }}"
-  with_items: "{{ plugins_command_files }}"
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_custom_confd_dir }}/{{ item.dest }}"
+  with_items: "{{ icinga2_plugins_command_files }}"
   notify: Reload Icinga2
 
 - name: Deploy services configuration files
   template:
     src: "{{ item.src }}"
-    dest: "{{ config_root_dir }}/{{ services_dir }}/{{ item.dest }}"
-  with_items: "{{ services_config_files }}"
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/{{ item.dest }}"
+  with_items: "{{ icinga2_services_config_files }}"
   notify: Reload Icinga2
 
 # Install Harisekhon Plugins
 - include_tasks: plugins-harisekhon.yml
-  when: ansible_system == "Linux" and ansible_os_family | lower in apt_distros and harisekhon_plugins_install == true
+  when: ansible_system == "Linux" and ansible_os_family | lower in apt_distros and icinga2_harisekhon_plugins_install == true
 
 # Force reload handler on var=true
 - name: Force reload Icinga2
