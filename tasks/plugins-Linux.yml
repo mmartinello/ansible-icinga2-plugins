@@ -55,7 +55,7 @@
 
 # Install Harisekhon Plugins
 - include_tasks: plugins-harisekhon.yml
-  when: ansible_system == "Linux" and ansible_os_family | lower in apt_distros and icinga2_harisekhon_plugins_install == true
+  when: ansible_system == "Linux" and ansible_os_family | lower in icinga2_apt_distros and icinga2_harisekhon_plugins_install == true
 
 # Force reload handler on var=true
 - name: Force reload Icinga2
