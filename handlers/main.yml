@@ -1,2 +1,22 @@
 ---
-# handlers file for mmartinello.icinga2-plugins
+- name: Restart Icinga2
+  service:
+    name: icinga2
+    state: restarted
+
+- name: Reload Icinga2
+  service:
+    name: icinga2
+    state: reloaded
+
+- name: Reload Icinga2 on master server
+  service:
+    name: icinga2
+    state: reloaded
+  delegate_to: "{{ icinga2_master_inventory_hostname }}"
+  become: true
+
+- name: Restart Icinga2 on Windows
+  win_service:
+    name: icinga2
+    state: restarted

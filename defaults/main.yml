@@ -1,2 +1,33 @@
 ---
-# defaults file for mmartinello.icinga2-plugins
+# APT Distributions (in lower case!)
+apt_distros:
+  - debian
+  - ubuntu
+
+# YUM Distributions (in lower case!)
+yum_distros:
+  - centos
+  - redhat
+  - red hat enterprise linux
+
+# Icinga2 plugins
+plugins_src_dir: 'files/icinga2-custom-plugins'
+plugins_dest_dir: '/opt/icinga-plugins'
+win_plugins_src_dir: 'files/icinga2-custom-plugins-windows'
+win_plugins_dest_dir: 'C:\Program Files\ICINGA2\custom-plugins' # Must stay into C:\Program Files\ICINGA2!
+win_plugins_dest_dir_name: 'custom-plugins' # Path without root directory
+win_plugins_conf_src_template: templates/custom-command-plugins-windows.conf.j2
+plugins_custom_dir_var_name: 'CustomPluginsDir'
+plugins_command_files: []
+
+# Icinga2 Configuration
+config_root_dir: '/etc/icinga2'
+custom_confd_dir: 'custom-conf.d'
+services_dir: 'services.d'
+win_config_root_dir: 'C:\ProgramData\icinga2\etc\icinga2'
+constants_config_file: 'constants.conf'
+icinga2_force_reload: false
+
+# Harisekhon plugins
+harisekhon_plugins_install: false
+harisekhon_plugins_cmd: '"docker", "run", "--rm",'
