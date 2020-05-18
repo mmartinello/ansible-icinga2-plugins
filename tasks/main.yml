@@ -1,2 +1,6 @@
 ---
+# Install dependencies
+- import_tasks: install.yml
+
+# Install custom plugins
 - import_tasks: plugins.yml
