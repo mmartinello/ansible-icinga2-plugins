@@ -238,6 +238,8 @@ apply Service "APT Packages Updates" {
 
   check_command = "apt"
 
+  vars.notifications_disable = true
+
   assign where host.vars.distro == "Debian" || host.vars.distro == "Proxmox" || host.vars.distro == "Ubuntu"
 
   if (host.vars.client_endpoint) {
