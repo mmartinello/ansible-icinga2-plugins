@@ -10,6 +10,9 @@ icinga2_yum_distros:
   - redhat
   - red hat enterprise linux
 
+# Icinga2 plugins dependencies
+icinga2_plugins_dependencies: []
+
 # Icinga2 plugins
 icinga2_plugins_src_dir: 'files/icinga2-custom-plugins'
 icinga2_plugins_dest_dir: '/opt/icinga-plugins'
