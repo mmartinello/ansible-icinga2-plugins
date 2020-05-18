@@ -1,5 +1,5 @@
 ---
 - name: Install plugins dependencies
   apt:
-    name: icinga2_plugins_dependencies
+    name: "{{ icinga2_plugins_dependencies }}"
     state: present
