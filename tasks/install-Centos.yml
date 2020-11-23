@@ -1,0 +1,5 @@
+---
+- name: Install plugins dependencies
+  yum:
+    name: "{{ icinga2_plugins_dependencies }}"
+    state: present
