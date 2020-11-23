@@ -1,0 +1,6 @@
+---
+- name: Set Icinga2 user and groups on CentOS-like systems
+  set_fact:
+    icinga2_user: "icinga"
+    icinga2_group: "icinga"
+  when: ansible_os_family | lower in icinga2_yum_distros
