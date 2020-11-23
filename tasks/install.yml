@@ -1,3 +1,6 @@
 ---
 - include_tasks: install-Debian.yml
   when: ansible_os_family | lower in icinga2_apt_distros
+
+- include_tasks: install-Centos.yml
+  when: ansible_os_family | lower in icinga2_yum_distros
