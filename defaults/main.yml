@@ -24,6 +24,8 @@ icinga2_plugins_custom_dir_var_name: 'CustomPluginsDir'
 icinga2_plugins_command_files: []
 
 # Icinga2 Configuration
+icinga2_user: nagios
+icinga2_group: nagios
 icinga2_config_root_dir: '/etc/icinga2'
 icinga2_custom_confd_dir: 'custom-conf.d'
 icinga2_services_dir: 'services.d'
