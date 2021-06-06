@@ -1,0 +1,37 @@
+/*
+Commands and services for Samba checks:
+  - check_ad_replication.py (https://github.com/infoxchange/check_ad_replication.py)
+*/ 
+
+# check_ad_replication.py (https://github.com/infoxchange/check_ad_replication.py)
+object CheckCommand "_samba_ad_replication" {
+        import "ipv4-or-ipv6"
+
+        command = [ {{ icinga2_plugins_custom_dir_var_name }} + "/check_ad_replication.py" ]
+
+        arguments = {
+                "-v" = {
+                        set_if = "$samba_ad_replication_verbose$"
+                        description = "verbose messages, print detailed summary"
+                }
+                "-H" = {
+                        value = "$samba_ad_replication_host$"
+                        description = "expect this host as the LDAP server reported by 'net ads info'"
+                }
+                "-I" = {
+                        value = "$samba_ad_replication_ip$"
+                        description = "expect this ip address as the LDAP server reported by 'net ads info'"
+                }
+        }
+}
+
+# check_ad_replication.py service definition (applied with host.vars.samba_ad)
+apply Service for (service_name => service_config in host.vars.samba_ad) {
+    import "generic-service"
+    check_command = "_samba_ad_replication"
+    vars += service_config
+
+    if (host.vars.client_endpoint) {
+        command_endpoint = host.vars.client_endpoint
+    }
+}

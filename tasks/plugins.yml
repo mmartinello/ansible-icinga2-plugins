@@ -4,3 +4,6 @@
 
 - include_tasks: plugins-Windows.yml
   when: ansible_os_family == "Windows"
+
+- include_tasks: plugins/samba_ad.yml
+  when: icinga2_client_vars.samba_ad is defined

@@ -1,0 +1,24 @@
+---
+- name: Install plugin dependencies
+  apt:
+    name: python-dateutil
+    state: present
+  when: ansible_os_family | lower in icinga2_apt_distros
+
+- name: Copy the check_ad_replication plugin
+    copy:
+      src: "{{ icinga2_dynamic_plugins_src_dir }}/check_ad_replication.py"
+      dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_ad_replication.py"
+      mode: 0750
+      user: "{{ icinga2_user }}"
+      group: "{{ icinga2_group }}"
+
+- name: Configure sudo
+    template:
+      src: plugins/samba_ad-sudoers.j2
+      dest: /etc/sudoers.d/icinga2-samba
+
+- name: Copy the services definition file
+    template:
+      src: plugins/samba_ad.conf.j2
+      dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}"
