@@ -4,21 +4,25 @@
     name: python-dateutil
     state: present
   when: ansible_os_family | lower in icinga2_apt_distros
+  when: icinga2_client_vars.samba_ad is defined
 
 - name: Copy the check_ad_replication plugin
-    copy:
-      src: "{{ icinga2_dynamic_plugins_src_dir }}/check_ad_replication.py"
-      dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_ad_replication.py"
-      mode: 0750
-      user: "{{ icinga2_user }}"
-      group: "{{ icinga2_group }}"
+  copy:
+    src: "{{ icinga2_dynamic_plugins_src_dir }}/check_ad_replication.py"
+    dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_ad_replication.py"
+    mode: 0750
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+  when: icinga2_client_vars.samba_ad is defined
 
 - name: Configure sudo
-    template:
-      src: plugins/samba_ad-sudoers.j2
-      dest: /etc/sudoers.d/icinga2-samba
+  template:
+    src: plugins/samba_ad-sudoers.j2
+    dest: /etc/sudoers.d/icinga2-samba_ad
+  when: icinga2_client_vars.samba_ad is defined
 
 - name: Copy the services definition file
-    template:
-      src: plugins/samba_ad.conf.j2
-      dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}"
+  template:
+    src: plugins/samba_ad.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/samba_ad.conf"
+  notify: Reload Icinga2

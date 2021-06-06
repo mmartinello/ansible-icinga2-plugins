@@ -34,6 +34,7 @@ icinga2_services_dir: 'services.d'
 icinga2_win_config_root_dir: 'C:\ProgramData\icinga2\etc\icinga2'
 icinga2_constants_config_file: 'constants.conf'
 icinga2_force_reload: false
+icinga2_master_inventory_hostname:
 
 # Harisekhon plugins
 icinga2_harisekhon_plugins_install: false

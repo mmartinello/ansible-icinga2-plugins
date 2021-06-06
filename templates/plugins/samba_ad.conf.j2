@@ -7,7 +7,7 @@ Commands and services for Samba checks:
 object CheckCommand "_samba_ad_replication" {
         import "ipv4-or-ipv6"
 
-        command = [ {{ icinga2_plugins_custom_dir_var_name }} + "/check_ad_replication.py" ]
+        command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_ad_replication.py" ]
 
         arguments = {
                 "-v" = {
@@ -28,6 +28,7 @@ object CheckCommand "_samba_ad_replication" {
 # check_ad_replication.py service definition (applied with host.vars.samba_ad)
 apply Service for (service_name => service_config in host.vars.samba_ad) {
     import "generic-service"
+    name = service_name + " - AD Replication"
     check_command = "_samba_ad_replication"
     vars += service_config
 
