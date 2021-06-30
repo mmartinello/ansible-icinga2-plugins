@@ -1,0 +1,28 @@
+---
+- name: Install plugin dependencies
+  apt:
+    name: sssd-tools
+    state: present
+  when: ansible_os_family | lower in icinga2_apt_distros
+  when: icinga2_client_vars.sssd is defined
+
+- name: Copy the check_ad_replication plugin
+  copy:
+    src: "{{ icinga2_dynamic_plugins_src_dir }}/check_sssd_backend_status"
+    dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_sssd_backend_status"
+    mode: 0750
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+  when: icinga2_client_vars.sssd is defined
+
+- name: Configure sudo
+  template:
+    src: plugins/sssd-sudoers.j2
+    dest: /etc/sudoers.d/icinga2-sssd
+  when: icinga2_client_vars.sssd is defined
+
+- name: Copy the services definition file
+  template:
+    src: plugins/sssd.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/sssd.conf"
+  notify: Reload Icinga2

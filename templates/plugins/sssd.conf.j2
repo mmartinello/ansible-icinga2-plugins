@@ -1,0 +1,34 @@
+/*
+Commands and services for SSSD checks:
+  - check_sssd_backend_status (https://github.com/ccin2p3/nagios-plugin-sssd-backend-status)
+*/ 
+
+# check_sssd_backend_status (https://github.com/ccin2p3/nagios-plugin-sssd-backend-status)
+object CheckCommand "_sssd_backend_status" {
+    import "ipv4-or-ipv6"
+
+    command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_sssd_backend_status" ]
+
+    arguments = {
+        "--debug" = {
+            set_if = "$sssd_backend_debug$"
+            description = "enable debug"
+        }
+        "--domains" = {
+            value = "$sssd_backend_domains$"
+            description = "domains to check (comma separated). Defaults to check all domains"
+        }
+    }
+}
+
+# Check SSSD backend status: assigned through 'sssd' host var
+apply Service for (service_name => service_config in host.vars.sssd) {
+    import "generic-service"
+    name = service_name + " - Connection"
+    check_command = "_sssd_backend_status"
+    vars += service_config
+
+    if (host.vars.client_endpoint) {
+        command_endpoint = host.vars.client_endpoint
+    }
+}

@@ -5,5 +5,18 @@
 - include_tasks: plugins-Windows.yml
   when: ansible_os_family == "Windows"
 
+# Samba AD plugins
 - include_tasks: plugins/samba_ad.yml
   when: icinga2_client_vars.samba_ad is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+# PostgreSQL plugins
+- include_tasks: plugins/postgres.yml
+  when: icinga2_client_vars.postgres is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+# SSSD plugins
+- include_tasks: plugins/sssd.yml
+  when: icinga2_client_vars.sssd is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+# MS SQL plugins
+- include_tasks: plugins/mssql.yml
+  when: icinga2_client_vars.mssql is defined or ansible_fqdn == icinga2_master_inventory_hostname

@@ -1,0 +1,425 @@
+
+Commands and services for Microsoft SQL Server checks:
+  - check_mssql_health (https://labs.consol.de/nagios/check_mssql_health/)
+
+Run modes (arguments of 'mssql_health_mode'): https://labs.consol.de/nagios/check_mssql_health/index.html#modi
+
+TODO:
+  - for each automatic check overwrite the check with some specific host.vars
+*/ 
+
+# Check Command definition
+object CheckCommand "_check_mssql_health" {
+        import "ipv4-or-ipv6"
+
+        command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_mssql_health" ]
+
+        arguments = {
+                "--hostname" = {
+                        value = "$mssql_health_hostname$"
+                        description = "The database server"
+                }
+                "--username" = {
+                        value = "$mssql_health_username$"
+                        description = "The database user"
+                }
+                "--password" = {
+                        value = "$mssql_health_password$"
+                        description = "The database password"
+                }
+                "--port" = {
+                        value = "$mssql_health_port$"
+                        description = "The port, where the server listens (Default: 1433)"
+                }
+                "--server" = {
+                        value = "$mssql_health_server$"
+                        description = "An alternative to hostname+port. <server> will be looked up in the file freetds.conf."
+                }
+                "--mode" = {
+                        value = "$mssql_health_mode$"
+                        description = "With the mode-parameter you tell the plugin what you want it to do."
+                }
+                "--name" = {
+                        value = "$mssql_health_name$"
+                        description = "Several checks can be limited to a single object (e.g. a specific database). It is also used for mode=sql."
+                }
+                "--name2" = {
+                        value = "$mssql_health_name2$"
+                        description = "If you use –mode=sql, the SQL-statement will be shown in the plugin output and the performance data (which looks ugly). The parameter name2 can be used to provide a used-defined string."
+                }
+                "--warning" = {
+                        value = "$mssql_health_warning$"
+                        description = "Values outside this range result in a WARNING."
+                }
+                "--critical" = {
+                        value = "$mssql_health_critical$"
+                        description = "Values outside this range result in a CRITICAL."
+                }
+                "--environment" = {
+                        value = "$mssql_health_environment$"
+                        description = "It is possible to set environment variables at runtime with htis parameter. It can be used multiple times."
+                }
+                "--method" = {
+                        value = "$mssql_health_method$"
+                        description = "With this parameter you tell the plugin, which connection method it should use. Known values are: dbi for the perl module DBD::Sybase (default) and sqlrelay for the SQLRelay proxy."
+                }
+                "--units" = {
+                        value = "$mssql_health_units$"
+                        description = "This parameter adds units to the performance, when using mode=sql (%|KB|MB|GB)"
+                }
+                "--dbthresholds" = {
+                        value = "$mssql_health_$dbthresholds"
+                        description = "With this parameter thresholds are read from the database table mssql_health_thresholds"
+                }
+                "--commit" = {
+                        set_if = "$mssql_health_commit$"
+                        description = "Forces auto-commit on"
+                }
+                "--lookback" = {
+                        value = "$mssql_health_lookback$"
+                        description = "The amount of time you want to look back when calculating average rates"
+                }
+        }
+
+        vars.mssql_health_server = "$check_address$"	
+        vars.mssql_health_commit = true
+}
+
+
+###############################################################################
+# Automatic service definitions WITHOUT specific mode configures (through
+# 'mssql' host.var and host.var.mssql_health_mode == "auto" or undefined)
+
+# Check MSSQL TCP port
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+    name = service_name + " - TCP Port"
+    check_command = "tcp"
+    vars.command_endpoint = "local"
+    
+    # TCP port: configured with mssql_health_port or default 1433
+    if (service_config.mssql_health_port) {
+        vars.tcp_port = service_config.mssql_health_port
+    } else {
+        vars.tcp_port = "1433"
+    }
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Connection time
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Connection Time"
+    vars.mssql_health_mode = "connection-time"
+    vars.mssql_health_warning = 2
+    vars.mssql_health_critical = 6
+
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Connected users
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Connected Users"
+    vars.mssql_health_mode = "connected-users"
+    vars.mssql_health_warning = "100"
+    vars.mssql_health_critical = "200"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Transaction per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Transaction per second"
+    vars.mssql_health_mode = "transactions"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Batch requests per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Batch requests per second"
+    vars.mssql_health_mode = "batch-requests"
+    vars.mssql_health_warning = "600"
+    vars.mssql_health_critical = "800"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Latch-Requests per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Latch-Requests per second"
+    vars.mssql_health_mode = "latches-waits"
+    vars.mssql_health_warning = "150"
+    vars.mssql_health_critical = "200"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Latch-Requests wait time
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Latch-Requests wait time"
+    vars.mssql_health_mode = "latches-wait-time"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Lock-Requests per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Lock-Requests per second"
+    vars.mssql_health_mode = "locks-waits"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Timed out Lock-Requests per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Timed out Lock-Requests per second"
+    vars.mssql_health_mode = "locks-timeouts"
+    vars.mssql_health_warning = "10"
+    vars.mssql_health_critical = "20"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Deadlocks per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Deadlocks per second"
+    vars.mssql_health_mode = "locks-deadlocks"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Re-Compilations per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Re-Compilations per second"
+    vars.mssql_health_mode = "sql-recompilations"
+    vars.mssql_health_warning = "5"
+    vars.mssql_health_critical = "10"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Initial Compilations per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Initial Compilations per second"
+    vars.mssql_health_mode = "sql-initcompilations"
+    vars.mssql_health_warning = "200"
+    vars.mssql_health_critical = "400"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Total Server Memory
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Total Server Memory"
+    vars.mssql_health_mode = "total-server-memory"
+    vars.mssql_health_warning = "12:"
+    vars.mssql_health_critical = "6:"
+    vars.mssql_health_units = "GB"
+
+    # Memory warning: configured with mssql_total_server_memory_warning or default
+    if (service_config.mssql_total_server_memory_warning) {
+        vars.mssql_health_warning = service_config.mssql_total_server_memory_warning
+    } else {
+        vars.mssql_health_warning = "12:"
+    }
+
+    # Memory critical: configured with mssql_total_server_memory_critical or default
+    if (service_config.mssql_total_server_memory_critical) {
+        vars.mssql_health_critical = service_config.mssql_total_server_memory_critical
+    } else {
+        vars.mssql_health_critical = "6:"
+    }
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Data Buffer Cache Hit Ratio
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Data Buffer Cache Hit Ratio"
+    vars.mssql_health_mode = "mem-pool-data-buffer-hit-ratio"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Lazy Writes per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Lazy Writes per second"
+    vars.mssql_health_mode = "lazy-writes"
+    vars.mssql_health_warning = "100"
+    vars.mssql_health_critical = "150"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Page time in memory
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Page time in memory"
+    vars.mssql_health_mode = "page-life-expectancy"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Flushed Dirty Pages per second
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Flushed Dirty Pages per second"
+    vars.mssql_health_mode = "checkpoint-pages"
+    vars.mssql_health_warning = "400"
+    vars.mssql_health_critical = "600"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Databases Online
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Databases Online"
+    vars.mssql_health_mode = "database-online"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Databases Free space
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Databases Free space"
+    vars.mssql_health_mode = "database-free"
+    vars.mssql_health_warning = "20:"
+    vars.mssql_health_critical = "10:"
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+# Failed Jobs
+apply Service for (service_name => service_config in host.vars.mssql) {
+    import "generic-service"
+
+    check_command = "_check_mssql_health"
+    name = service_name + " - Failed Jobs in last 24 hours"
+    vars.mssql_health_mode = "failed-jobs"
+    vsrs.mssql_health_lookback = "86400"
+    vars.mssql_health_warning = 7200
+    vars.mssql_health_critical = 10800
+    
+    vars += service_config
+
+    assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
+}
+
+###############################################################################
+# Manual service definition WITH specific mode configured
+# (through 'mssql_custom' host.var and host.var.mssql_health_mode configured
+
+apply Service for (service_name => service_config in host.vars.mssql_custom) {
+  import "generic-service"
+  name = service_name
+  check_command = "_check_mssql_health"
+  vars.command_endpoint = "local"
+  vars.tcp_port = service_config.mssql_health_port
+  assign where service_config.mssql_health_mode
+}
+
+
+###############################################################################
+# Groups
+
+# Host group
+object HostGroup "mssql-servers" {
+    display_name = "Microsoft SQL Server Hosts"
+    assign where "mssql" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "mssql" {
+  display_name = "Microsoft SQL Server Services"
+
+  assign where match("_check_mssql_health", service.check_command)
+}
