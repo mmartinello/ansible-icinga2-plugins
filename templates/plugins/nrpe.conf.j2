@@ -1,0 +1,42 @@
+# NRPE Services
+
+# Check a service using NRPE: assigned through 'nrpe' host var
+apply Service for (service_name => service_config in host.vars.nrpe) {
+  import "generic-service"
+  name = service_name + " (NRPE)"
+  check_command = "nrpe"
+
+  # NRPE port: configured with 'nrpe_port' or default
+  if (host.vars.nrpe_port) {
+    vars.nrpe_port = host.vars.nrpe_port
+  }
+
+  vars += service_config
+}
+
+# Check NRPE service (automatically added on hosts with has at least one
+# NRPE service configured
+apply Service "NRPE Service" {
+  import "generic-service"
+  check_command = "nrpe"
+
+  # NRPE port: configured with 'nrpe_port' or default
+  if (host.vars.nrpe_port) {
+    vars.nrpe_port = host.vars.nrpe_port
+  }
+
+  assign where host.vars.nrpe
+}
+
+# Host group
+object HostGroup "nrpe-servers" {
+    display_name = "Servers with NRPE enabled"
+    assign where "nrpe" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "nrpe" {
+  display_name = "NRPE Services"
+
+  assign where match("nrpe", service.check_command)
+}

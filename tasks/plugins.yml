@@ -20,3 +20,7 @@
 # MS SQL plugins
 - include_tasks: plugins/mssql.yml
   when: icinga2_client_vars.mssql is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+# NRPE plugins
+- include_tasks: plugins/nrpe.yml
+  when: icinga2_client_vars.nrpe is defined or ansible_fqdn == icinga2_master_inventory_hostname
