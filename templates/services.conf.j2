@@ -301,7 +301,7 @@ apply Service for (service_name => service_config in host.vars.ping) {
 
   check_command = "ping4"
 
-  vars += apply Service for (service_name => service_config in host.vars.ping) {
+  vars += service_config
 
 
   if (host.vars.client_endpoint) {
