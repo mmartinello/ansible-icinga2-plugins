@@ -1,0 +1,22 @@
+---
+- name: Install plugin dependencies
+  apt:
+    name: libfilesys-smbclient-perl
+    state: present
+  when: ansible_os_family | lower in icinga2_apt_distros
+  when: icinga2_client_vars.samba_share is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+- name: Copy the check_ad_replication plugin
+  copy:
+    src: "{{ icinga2_dynamic_plugins_src_dir }}/check_smb_share_status.pl"
+    dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_smb_share_status.pl"
+    mode: 0750
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+  when: icinga2_client_vars.samba_share is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+- name: Copy the services definition file
+  template:
+    src: plugins/samba.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/samba_share.conf"
+  notify: Reload Icinga2

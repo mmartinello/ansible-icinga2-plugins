@@ -24,3 +24,7 @@
 # NRPE plugins
 - include_tasks: plugins/nrpe.yml
   when: icinga2_client_vars.nrpe is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+# Samba plugins
+- include_tasks: plugins/samba.yml
+  when: icinga2_client_vars.samba_share is defined or ansible_fqdn == icinga2_master_inventory_hostname

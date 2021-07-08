@@ -1,0 +1,59 @@
+/*
+Commands and services for Samba checks:
+  - check_smb_share_status.pl (https://exchange.nagios.org/directory/Plugins/System-Metrics/File-System/SMB/check_smb_share_status-2Epl/details)
+*/ 
+
+# check_smb_share_status.pl (https://exchange.nagios.org/directory/Plugins/System-Metrics/File-System/SMB/check_smb_share_status-2Epl/details)
+object CheckCommand "_samba_share_status" {
+        import "ipv4-or-ipv6"
+
+        command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_smb_share_status.pl" ]
+
+        arguments = {
+                "-u" = {
+                        value = "$samba_user$"
+                        description = "username"
+                }
+                "-p" = {
+                        value = "$samba_password$"
+                        description = "password"
+                }
+                "-W" = {
+                        value = "$samba_workgroup$"
+                        description = "workgroup"
+                }
+                "-s" = {
+                        value = "\\\\" + "$check_address$" + "\\" + "$samba_share$"
+                        description = "share"
+                }
+        }
+}
+
+# check_smb_share_status.pl service definition (applied with host.vars.samba_share)
+apply Service for (service_name => service_config in host.vars.samba_share) {
+    import "generic-service"
+    name = service_name + " - Samba Share Status"
+    check_command = "_samba_share_status"
+    vars += service_config
+
+    if (host.vars.client_endpoint) {
+        command_endpoint = host.vars.client_endpoint
+    }
+}
+
+
+###############################################################################
+# Groups
+
+# Host group
+object HostGroup "samba-servers" {
+    display_name = "Samba Servers"
+    assign where "samba_share" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "samba-shares" {
+  display_name = "Samba Shares"
+
+  assign where match("_samba_share_status", service.check_command)
+}
