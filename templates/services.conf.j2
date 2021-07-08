@@ -52,6 +52,18 @@ apply Service "SSH" {
   assign where (host.address || host.address6) && (host.vars.os == "Linux" || host.vars.os == "FreeBSD")
 }
 
+# check_ssh service definition (applied with host.vars.ssh)
+apply Service for (service_name => service_config in host.vars.ssh) {
+    import "generic-service"
+    name = service_name
+    check_command = "ssh"
+    vars += service_config
+
+    if (host.vars.client_endpoint) {
+        command_endpoint = host.vars.client_endpoint
+    }
+}
+
 
 
 apply Service for (http_vhost => config in host.vars.http_vhosts) {
@@ -250,18 +262,6 @@ apply Service "APT Packages Updates" {
 apply Service for (dns => config in host.vars.dns) {
   import "generic-service"
   check_command = "dns"
-  vars += config
-}
-
-apply Service "NRPE Service" {
-  import "generic-service"
-  check_command = "nrpe"
-  assign where host.vars.nrpe
-}
-
-apply Service for (nrpe => config in host.vars.nrpe) {
-  import "generic-service"
-  check_command = "nrpe"
   vars += config
 }
 
