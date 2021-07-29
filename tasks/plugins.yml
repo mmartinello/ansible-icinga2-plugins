@@ -28,3 +28,7 @@
 # Samba plugins
 - include_tasks: plugins/samba.yml
   when: icinga2_client_vars.samba_share is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+# Mail plugins
+- include_tasks: plugins/mail.yml
+  when: icinga2_client_vars.mailq is defined or ansible_fqdn == icinga2_master_inventory_hostname

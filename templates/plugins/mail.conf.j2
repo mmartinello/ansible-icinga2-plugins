@@ -1,0 +1,102 @@
+# Mail things: SMTP, POP, IMAP, etc
+
+# Check SMTP service: assigned through 'smtp' host var
+apply Service for (service_name => service_config in host.vars.smtp) {
+  import "generic-service"
+  name = service_name
+  check_command = "smtp"
+
+  vars += service_config
+
+  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+# Check SSMTP service: assigned through 'ssmtp' host var
+apply Service for (service_name => service_config in host.vars.ssmtp) {
+  import "generic-service"
+  name = service_name
+  check_command = "ssmtp"
+
+  vars += service_config
+
+  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+# Check IMAP service: assigned through 'imap' host var
+apply Service for (service_name => service_config in host.vars.imap) {
+  import "generic-service"
+  name = service_name
+  check_command = "imap"
+
+  vars += service_config
+
+  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+# Check IMAPS service: assigned through 'simap' host var
+apply Service for (service_name => service_config in host.vars.simap) {
+  import "generic-service"
+  name = service_name
+  check_command = "simap"
+
+  vars += service_config
+
+  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+# Check POP service: assigned through 'pop' host var
+apply Service for (service_name => service_config in host.vars.pop) {
+  import "generic-service"
+  name = service_name
+  check_command = "pop"
+
+  vars += service_config
+}
+
+# Check POPS service: assigned through 'spop' host var
+apply Service for (service_name => service_config in host.vars.spop) {
+  import "generic-service"
+  name = service_name
+  check_command = "spop"
+
+  vars += service_config
+
+  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+# Check Mail queue: assigned through 'mailq' host var
+apply Service for (service_name => service_config in host.vars.mailq) {
+  import "generic-service"
+  name = service_name
+  check_command = "mailq"
+
+  vars += service_config
+
+  if (host.vars.client_endpoint) {
+      command_endpoint = host.vars.client_endpoint
+  }
+}
+
+
+# Host group
+object HostGroup "mail-servers" {
+    display_name = "Mail Servers"
+    assign where "smtp" in keys(host.vars) || "ssmtp" in keys(host.vars) || "pop" in keys(host.vars) || "spop" in keys(host.vars) || "imap" in keys(host.vars) || "simap" in keys(host.vars) || "mailq" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "mail" {
+  display_name = "Mail Services"
+
+  assign where match("smtp", service.check_command) || match("ssmtp", service.check_command) || match("pop", service.check_command) || match("spop", service.check_command) || match("imap", service.check_command) || match("simap", service.check_command) || match("mailq", service.check_command)
+}

@@ -231,14 +231,6 @@ apply Service "SNMP Daemon" {
   assign where host.vars.os == "Linux" && host.vars.check_snmpd != false
 }
 
-apply Service for (simap => config in host.vars.simap) {
-  import "generic-service"
-
-  check_command = "simap"
-
-  vars += config
-}
-
 apply Service for (mysql => config in host.vars.mysql) {
   import "generic-service"
   check_command = "mysql"
