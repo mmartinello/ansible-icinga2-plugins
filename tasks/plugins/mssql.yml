@@ -12,9 +12,11 @@
     mode: 0750
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"
-
+  when: ansible_system == "Linux"
+  
 - name: Copy the services definition file
   template:
     src: plugins/mssql.conf.j2
     dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mssql.conf"
   notify: Reload Icinga2
+  when: ansible_system == "Linux"
