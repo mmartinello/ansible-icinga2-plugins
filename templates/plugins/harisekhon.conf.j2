@@ -1,3 +1,6 @@
+###############################################################################
+# Elasticsearch
+
 object CheckCommand "_hk_check_elasticsearch" {
         import "ipv4-or-ipv6"
         command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch.pl" ]
@@ -106,6 +109,26 @@ object CheckCommand "_hk_check_elasticsearch_cluster_status" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+# Elasticsearch connection: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  check_command = "_hk_check_elasticsearch"
+
+  vars += service_config
+}
+
+# Elasticsearch cluster status: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Cluster status"
+  check_command = "_hk_check_elasticsearch_cluster_status"
+
+  vars += service_config
+}
+
+###############################################################################
+# Nginx
+
 object CheckCommand "_hk_check_nginx_stats" {
         import "ipv4-or-ipv6"
         command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_nginx_stats.pl" ]
@@ -147,6 +170,18 @@ object CheckCommand "_hk_check_nginx_stats" {
 
         vars.nginx_host = "$check_address$"
 }
+
+# Nginx stats: assigned through 'nginx' host var
+apply Service for (service_name => service_config in host.vars.nginx) {
+  import "generic-service"
+  name = service_name + " - Active Connections"
+  check_command = "_hk_check_nginx_stats"
+  assign where service_config.nginx_stats_enabled == true
+  vars += service_config
+}
+
+###############################################################################
+# Redis
 
 object CheckCommand "_hk_check_redis_stats" {
         import "ipv4-or-ipv6"
@@ -248,6 +283,26 @@ object CheckCommand "_hk_check_redis_write" {
 
         vars.redis_host = "$check_address$"
 }
+
+# Redis stats: assigned through 'redis' host var
+apply Service for (service_name => service_config in host.vars.redis) {
+  import "generic-service"
+  check_command = "_hk_check_redis_stats"
+  name = service_name + " - Stats"
+  vars += service_config
+}
+
+# Redis write: assigned through 'redis' host var
+apply Service for (service_name => service_config in host.vars.redis) {
+  import "generic-service"
+  check_command = "_hk_check_redis_write"
+  name = service_name + " - Write"
+  vars += service_config
+  ignore where service_config.check_write == false
+}
+
+###############################################################################
+# RabbitMQ
 
 object CheckCommand "_hk_check_rabbitmq" {
         import "ipv4-or-ipv6"
@@ -385,6 +440,26 @@ object CheckCommand "_hk_check_rabbitmq_healthchecks" {
         vars.rabbitmq_host = "$check_address$"
 }
 
+# RabbitMQ connection: assigned through 'rabbitmq' host var
+apply Service for (service_name => service_config in host.vars.rabbitmq) {
+  import "generic-service"
+  name = service_name + " - Connection"
+  check_command = "_hk_check_rabbitmq"
+  vars += service_config
+}
+
+# RabbitMQ health check: assigned through 'rabbitmq' host var
+apply Service for (service_name => service_config in host.vars.rabbitmq) {
+  import "generic-service"
+  name = service_name + " - Health Checks"
+  check_command = "_hk_check_rabbitmq_healthchecks"
+  assign where service_config.management_plugin_enabled == true
+  vars += service_config
+}
+
+###############################################################################
+# Amazon S3
+
 object CheckCommand "_hk_check_aws_s3_file" {
         import "ipv4-or-ipv6"
         command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_aws_s3_file.pl" ]
@@ -451,6 +526,8 @@ object CheckCommand "_hk_check_aws_s3_file" {
         vars.aws_s3_file = "icinga2_check.file"
 }
 
+###############################################################################
+# InfluxDB
 
 object CheckCommand "_hk_check_influxdb_api_ping" {
         import "ipv4-or-ipv6"
@@ -494,6 +571,9 @@ object CheckCommand "_hk_check_influxdb_api_ping" {
         vars.influxdb_host = "$check_address$"
 }
 
+###############################################################################
+# Logstash
+
 object CheckCommand "_hk_check_logstash_status" {
         import "ipv4-or-ipv6"
         command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_logstash_status.py" ]
@@ -531,6 +611,18 @@ object CheckCommand "_hk_check_logstash_status" {
 
         vars.logstash_host = "$check_address$"
 }
+
+# Logstash: assigned through 'logstash' host var
+apply Service for (service_name => service_config in host.vars.logstash) {
+  import "generic-service"
+  check_command = "_hk_check_logstash_status"
+  name = service_name + " - Status"
+  vars += service_config
+  ignore where service_config.network_listen == false
+}
+
+###############################################################################
+# Memcached
 
 object CheckCommand "_hk_check_memcached_write" {
         import "ipv4-or-ipv6"
@@ -603,6 +695,9 @@ object CheckCommand "_hk_check_memcached_stats" {
 
         vars.memcached_host = "$check_address$"
 }
+
+###############################################################################
+# MySQL Query
 
 object CheckCommand "_hk_check_mysql_query" {
         import "ipv4-or-ipv6"
@@ -702,6 +797,8 @@ object CheckCommand "_hk_check_mysql_query" {
         vars.mysql_host = "$check_address$"
 }
 
+###############################################################################
+# Solr
 
 object CheckCommand "_hk_check_solr_api_ping" {
         import "ipv4-or-ipv6"
@@ -835,6 +932,8 @@ object CheckCommand "_hk_check_solr_write" {
         vars.solr_host = "$check_address$"
 }
 
+###############################################################################
+# Vault
 
 object CheckCommand "_hk_check_vault_health" {
         import "ipv4-or-ipv6"
@@ -885,6 +984,16 @@ object CheckCommand "_hk_check_vault_health" {
 
         vars.vault_host = "$check_address$"
 }
+
+# Vault: assigned through 'vault' host var
+apply Service for (service_name => service_config in host.vars.vault) {
+  import "generic-service"
+  check_command = "_hk_check_vault_health"
+  vars += service_config
+}
+
+###############################################################################
+# Grafana
 
 object CheckCommand "_hk_check_grafana_health" {
         import "ipv4-or-ipv6"
@@ -972,4 +1081,18 @@ object CheckCommand "_hk_check_grafana_version" {
         }
 
         vars.grafana_host = "$check_address$"
+}
+
+# Grafana
+apply Service for (service_name => service_config in host.vars.grafana) {
+  import "generic-service"
+  check_command = "_hk_check_grafana_health"
+  name = service_name + " - Health"
+  vars += service_config
+}
+apply Service for (service_name => service_config in host.vars.grafana) {
+  import "generic-service"
+  check_command = "_hk_check_grafana_version"
+  name = service_name + " - Version"
+  vars += service_config
 }

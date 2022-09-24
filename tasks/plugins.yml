@@ -32,3 +32,7 @@
 # Mail plugins
 - include_tasks: plugins/mail.yml
   when: icinga2_client_vars.mailq is defined or ansible_fqdn == icinga2_master_inventory_hostname
+
+# Harisekhon Plugins on master node
+- include_tasks: plugins/harisekhon.yml
+  when: ansible_fqdn == icinga2_master_inventory_hostname

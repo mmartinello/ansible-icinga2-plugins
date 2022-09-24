@@ -14,5 +14,5 @@
 
 - name: Deploy Harisekhon Plugins Commands Configuration File
   template:
-    src: "templates/harisekhon-plugins-commands.conf.j2"
-    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_custom_confd_dir }}/harisekhon-plugins-commands.conf"
+    src: "templates/plugins/harisekhon.conf.j2"
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/harisekhon.conf"
