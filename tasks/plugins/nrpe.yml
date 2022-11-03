@@ -1,12 +1,15 @@
 ---
-- name: Install the plugin
-  apt:
-    name: nagios-nrpe-plugin
-    state: present
-  when: ansible_os_family | lower in icinga2_apt_distros
+- name: Install NRPE Plugin
+  block:
+    - name: Install the plugin
+      apt:
+        name: nagios-nrpe-plugin
+        state: present
+      when: ansible_os_family | lower in icinga2_apt_distros
 
-- name: Copy the services definition file
-  template:
-    src: plugins/nrpe.conf.j2
-    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/nrpe.conf"
-  notify: Reload Icinga2
+    - name: Copy the services definition file
+      template:
+        src: plugins/nrpe.conf.j2
+        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/nrpe.conf"
+      notify: Reload Icinga2
+    when: icinga2_client_vars.nrpe is defined
