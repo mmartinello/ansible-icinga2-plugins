@@ -16,3 +16,4 @@
   template:
     src: "templates/plugins/harisekhon.conf.j2"
     dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/harisekhon.conf"
+  notify: Reload Icinga2
