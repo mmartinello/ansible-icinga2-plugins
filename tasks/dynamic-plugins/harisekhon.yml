@@ -1,22 +1,20 @@
 ---
+- name: Install Docker
+  import_role:
+    name: mmartinello.docker
+
+- name: Install Docker PIP package
+  pip:
+    name: "docker"
+    state: present
+
 - name: Install Harisekhon Plugins
-  block:
-    - name: Install Docker
-      import_role:
-        name: mmartinello.docker
+  docker_image:
+    name: harisekhon/nagios-plugins
+    source: pull
 
-    - name: Install Docker PIP package
-      pip:
-        name: "docker"
-        state: present
-
-    - name: Install Harisekhon Plugins
-      docker_image:
-        name: harisekhon/nagios-plugins
-
-    - name: Deploy Harisekhon Plugins Commands Configuration File
-      template:
-        src: "templates/plugins/harisekhon.conf.j2"
-        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/harisekhon.conf"
-      notify: Reload Icinga2
-  when: ansible_fqdn == icinga2_master_inventory_hostname
+- name: Deploy Harisekhon Plugins Commands Configuration File
+  template:
+    src: "templates/plugins/harisekhon.conf.j2"
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/harisekhon.conf"
+  notify: Reload Icinga2

@@ -1,25 +1,23 @@
 ---
-- name: Install MSSQL Plugins
-  block:
-    - name: Install plugin dependencies
-      apt:
-        name: libdbd-sybase-perl
-        state: present
-      when: ansible_os_family | lower in icinga2_apt_distros
+- name: Install plugin dependencies
+  apt:
+    name: libdbd-sybase-perl
+    state: present
+  when: ansible_os_family | lower in icinga2_apt_distros
 
-    - name: Copy the check_mssql_health plugin
-      copy:
-        src: "{{ icinga2_dynamic_plugins_src_dir }}/check_mssql_health"
-        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_mssql_health"
-        mode: 0750
-        owner: "{{ icinga2_user }}"
-        group: "{{ icinga2_group }}"
-      when: ansible_system == "Linux"
-      
-    - name: Copy the services definition file
-      template:
-        src: plugins/mssql.conf.j2
-        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mssql.conf"
-      notify: Reload Icinga2
-      when: ansible_system == "Linux"
-  when: icinga2_client_vars.mssql is defined
+- name: Copy the check_mssql_health plugin
+  copy:
+    src: "{{ icinga2_dynamic_plugins_src_dir }}/check_mssql_health"
+    dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_mssql_health"
+    mode: 0750
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+  when: ansible_system == "Linux"
+  ignore_errors: yes
+  
+- name: Copy the services definition file
+  template:
+    src: plugins/mssql.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mssql.conf"
+  notify: Reload Icinga2
+  when: ansible_system == "Linux"

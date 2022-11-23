@@ -1,9 +1,9 @@
 ---
-- include_tasks: plugins-Linux.yml
-  when: ansible_system == "Linux"
+#- include_tasks: plugins-Linux.yml
+#  when: ansible_system == "Linux"
 
-- include_tasks: plugins-Windows.yml
-  when: ansible_os_family == "Windows"
+#- include_tasks: plugins-Windows.yml
+#  when: ansible_os_family == "Windows"
 
 # Include dynamic plugins
 - include_tasks: dynamic-plugins.yml

@@ -1,9 +1,6 @@
 ---
-- name: Install Mail Plugins
-  block:
-    - name: Copy the services definition file
-      template:
-        src: plugins/mail.conf.j2
-        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mail.conf"
-      notify: Reload Icinga2
-  when: icinga2_client_vars.mailq is defined
+- name: Copy the services definition file
+  template:
+    src: plugins/mail.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mail.conf"
+  notify: Reload Icinga2
