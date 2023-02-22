@@ -1,0 +1,123 @@
+# {{ ansible_managed }}
+
+/*
+Commands and services for ZFS checks:
+  - check_zfs.py (https://github.com/zlacelle/nagios_check_zfs_linux)
+*/ 
+
+
+#
+# Check Commands
+###############################################################################
+
+# check_zfs.py (https://github.com/zlacelle/nagios_check_zfs_linux)
+object CheckCommand "_zfs_pool" {
+    import "ipv4-or-ipv6"
+
+    command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_zfs.py" ]
+
+    arguments = {
+        "--pool" = {
+            value = "$pool$"
+            description = "name of the zpool to check"
+            skip_key = true
+            required = true
+            order = -1
+        }
+        "--capacity" = {
+            set_if = "$capacity$"
+            description = "monitor utilization of zpool (%, int [0-100])"
+        }
+        "--fragmentation" = {
+            value = "$fragmentation$"
+            description = "monitor fragmentation of zpool (%, int [0-100])"
+        }
+        "--nosudo" = {
+            set_if = "$nosudo$"
+            description = "do not attempt to sudo first when running zfs commands, instead just run them"
+        }
+    }
+
+    vars.nosudo = true
+}
+
+# check_zpool_scrub (https://github.com/Josef-Friedrich/check_zpool_scrub)
+object CheckCommand "_zfs_zpool_scrub" {
+    import "ipv4-or-ipv6"
+
+    command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_zpool_scrub" ]
+
+    arguments = {
+        "--critical" = {
+            set_if = "$critical$"
+            description = "Interval in seconds for critical state"
+            separator = "="
+        }
+        "--pool" = {
+            value = "$pool$"
+            description = "Name of the pool. If this option is omitted all pools are checked"
+            separator = "="
+        }
+        "--warning" = {
+            set_if = "$warning$"
+            description = "Interval in seconds for warning state. Must be lower than -c"
+            separator = "="
+        }
+    }
+}
+
+
+#
+# Services
+###############################################################################
+
+# Check ZFS pool status: assigned through 'zfs' host var
+apply Service for (pool_name => config in host.vars.zfs) {
+    import "generic-service"
+    name = "ZFS pool '" + pool_name + "' status"
+
+    check_command = "_zfs_pool"
+    
+    vars += config
+    vars.pool = pool_name
+
+    enable_notifications = false
+
+    if (host.vars.client_endpoint) {
+        command_endpoint = host.vars.client_endpoint
+    }
+}
+
+apply Service for (pool_name => config in host.vars.zfs) {
+    import "generic-service"
+    name = "ZFS pool '" + pool_name + "' scrub"
+
+    check_command = "_zfs_zpool_scrub"
+    
+    vars += config
+    vars.pool = pool_name
+
+    enable_notifications = false
+
+    if (host.vars.client_endpoint) {
+        command_endpoint = host.vars.client_endpoint
+    }
+}
+
+
+#
+# Groups
+###############################################################################
+
+# Host group
+object HostGroup "zfs-servers" {
+    display_name = "ZFS Hosts"
+    assign where "zfs" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "zfs" {
+  display_name = "ZFS Checks"
+
+  assign where match("_zfs*", service.check_command)
+}
