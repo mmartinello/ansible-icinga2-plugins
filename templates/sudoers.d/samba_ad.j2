@@ -1,3 +1,5 @@
+# {{ ansible_managed }}
+
 Defaults:{{ icinga2_user }} !requiretty
 Defaults:{{ icinga2_user }} syslog_goodpri=debug
 {{ icinga2_user }}    ALL=(ALL)    NOPASSWD:{{ icinga2_dynamic_plugins_dest_dir }}/check_ad_replication.py ""

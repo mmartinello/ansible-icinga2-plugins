@@ -37,5 +37,5 @@ icinga2_force_reload: false
 icinga2_master_inventory_hostname:
 
 # Harisekhon plugins
-icinga2_harisekhon_plugins_install: false
-icinga2_harisekhon_plugins_cmd: '"docker", "run", "--rm",'
+icinga2_plugins_harisekhon: false
+icinga2_harisekhon_plugins_cmd: '"docker", "run", "--rm", "harisekhon/nagios-plugins", '

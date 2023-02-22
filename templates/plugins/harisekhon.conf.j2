@@ -1,3 +1,5 @@
+# {{ ansible_managed }}
+
 ###############################################################################
 # Elasticsearch
 
@@ -61,7 +63,7 @@ object CheckCommand "_hk_check_elasticsearch" {
 
 object CheckCommand "_hk_check_elasticsearch_cluster_status" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluser_status.pl" ]
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_status.pl" ]
 
         arguments = {
                 "-H" = {
@@ -455,6 +457,7 @@ apply Service for (service_name => service_config in host.vars.rabbitmq) {
   check_command = "_hk_check_rabbitmq_healthchecks"
   assign where service_config.management_plugin_enabled == true
   vars += service_config
+  vars.rabbitmq_port = service_config.management_plugin_port
 }
 
 ###############################################################################

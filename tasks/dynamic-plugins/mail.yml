@@ -1,6 +1,17 @@
 ---
-- name: Copy the services definition file
-  template:
-    src: plugins/mail.conf.j2
-    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mail.conf"
-  notify: Reload Icinga2
+- name: Install the mail check plugin
+  block:
+    - name: Copy the services definition file
+      template:
+        src: plugins/mail.conf.j2
+        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mail.conf"
+      notify: Reload Icinga2
+  when: >
+    icinga2_client_vars.smtp is defined
+    or icinga2_client_vars.ssmtp is defined
+    or icinga2_client_vars.imap is defined
+    or icinga2_client_vars.simap is defined
+    or icinga2_client_vars.pop is defined
+    or icinga2_client_vars.spop is defined
+    or icinga2_client_vars.mailq is defined
+    or ansible_fqdn == icinga2_master_inventory_hostname

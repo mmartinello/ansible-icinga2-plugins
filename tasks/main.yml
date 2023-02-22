@@ -1,9 +1,9 @@
 ---
 # Set variables
-#- import_tasks: vars.yml
+- import_tasks: vars.yml
 
 # Install dependencies
-#- import_tasks: install.yml
+- import_tasks: install.yml
 
 # Install custom plugins
 - import_tasks: plugins.yml

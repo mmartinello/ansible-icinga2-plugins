@@ -22,3 +22,6 @@
 
 # Harisekhon Plugins on master node
 - include_tasks: dynamic-plugins/harisekhon.yml
+
+# ZFS plugins
+- include_tasks: dynamic-plugins/zfs.yml
