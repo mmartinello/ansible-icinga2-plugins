@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+###############################################################################
+# Services from Linuxfabrik Monitoring Plugins Collection
+# https://github.com/Linuxfabrik/monitoring-plugins
+###############################################################################
+
+# About ME: assigned on every Linux host
+apply Service "About me" {
+  import "generic-service"
+
+  check_command = "_linuxfabrik_about_me"
+
+  assign where host.vars.os == "Linux" && host.vars.about_me_disabled
+
+  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+    command_endpoint = host.vars.client_endpoint
+  }
+
+  check_interval = 24h
+  icon_image = "about-me.png"
+}

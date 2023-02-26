@@ -25,3 +25,6 @@
 
 # ZFS plugins
 - include_tasks: dynamic-plugins/zfs.yml
+
+# LinuxFabrik Monitoring Plugins
+- include_tasks: dynamic-plugins/linuxfabrik.yml

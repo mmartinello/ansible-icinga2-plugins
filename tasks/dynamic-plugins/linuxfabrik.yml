@@ -1,0 +1,20 @@
+---
+- name: Install Linuxfabrik Monitoring Plugins
+  block:
+    - name: Install Linuxfabrik Monitoring Plugins
+      import_role:
+        name: mmartinello.linuxfabrik-monitoring-plugins
+      vars:
+        linuxfabrik_monitoring_plugins_dest_path: "{{ icinga2_plugins_dest_dir }}/linuxfabrik"
+        linuxfabrik_monitoring_plugins_commands_dest_path: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/linuxfabrik"
+        linuxfabrik_monitoring_plugins_icons_install: "{{ install_linuxfabrik_monitoring_plugins_icons | default(false) }}"
+        linuxfabrik_monitoring_plugins_commands_include: false
+
+    - name: Deploy Linuxfabrik Monitoring Plugins Commands Configuration File
+      template:
+        src: "templates/plugins/linuxfabrik.conf.j2"
+        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/linuxfabrik-services.conf"
+      notify: Reload Icinga2
+  when: >
+    icinga2_plugins_linuxfabrik
+    or ansible_fqdn == icinga2_master_inventory_hostname
