@@ -1,12 +1,12 @@
 ---
-# Samba AD plugins
-- include_tasks: dynamic-plugins/samba_ad.yml
+# Harisekhon Plugins on master node
+- include_tasks: dynamic-plugins/harisekhon.yml
 
-# PostgreSQL plugins
-- include_tasks: dynamic-plugins/postgres.yml
+# LinuxFabrik Monitoring Plugins
+- include_tasks: dynamic-plugins/linuxfabrik.yml
 
-# SSSD plugins
-- include_tasks: dynamic-plugins/sssd.yml
+# Mail plugins
+- include_tasks: dynamic-plugins/mail.yml
 
 # MS SQL plugins
 - include_tasks: dynamic-plugins/mssql.yml
@@ -14,17 +14,17 @@
 # NRPE plugins
 - include_tasks: dynamic-plugins/nrpe.yml
 
+# PostgreSQL plugins
+- include_tasks: dynamic-plugins/postgres.yml
+
+# Samba AD plugins
+- include_tasks: dynamic-plugins/samba_ad.yml
+
+# SSSD plugins
+- include_tasks: dynamic-plugins/sssd.yml
+
 # Samba plugins
 - include_tasks: dynamic-plugins/samba.yml
 
-# Mail plugins
-- include_tasks: dynamic-plugins/mail.yml
-
-# Harisekhon Plugins on master node
-- include_tasks: dynamic-plugins/harisekhon.yml
-
 # ZFS plugins
 - include_tasks: dynamic-plugins/zfs.yml
-
-# LinuxFabrik Monitoring Plugins
-- include_tasks: dynamic-plugins/linuxfabrik.yml
