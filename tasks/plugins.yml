@@ -4,6 +4,3 @@
 
 - include_tasks: plugins-Windows.yml
   when: ansible_os_family == "Windows"
-
-# Include dynamic plugins
-- include_tasks: dynamic-plugins.yml

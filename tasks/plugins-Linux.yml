@@ -1,15 +1,7 @@
 ---
 ###############################################################################
-# Dynamic plugins deploy (automatically managed through icinga2_client_vars)
-
-- name: Create the dynamic plugins destination directory
-  file:
-    path: "{{ icinga2_dynamic_plugins_dest_dir }}"
-    state: directory
-
-
-###############################################################################
 # Legacy plugins deploy (syncronize 'icinga2_plugins_src_dir' using rsync)
+# TODO: this has to be removed!
 
 - name: Get the username running the deploy
   local_action: shell whoami
@@ -82,3 +74,46 @@
   command: /bin/true
   notify: Reload Icinga2
   when: icinga2_force_reload == true
+
+
+
+###############################################################################
+# Dynamic plugins deploy (automatically managed through icinga2_client_vars)
+
+- name: Create the dynamic plugins destination directory
+  file:
+    path: "{{ icinga2_dynamic_plugins_dest_dir }}"
+    state: directory
+
+###############################################################################
+# Plugin list
+
+# Harisekhon Plugins on master node
+- include_tasks: plugins/harisekhon.yml
+
+# LinuxFabrik Monitoring Plugins
+- include_tasks: plugins/linuxfabrik.yml
+
+# Mail plugins
+- include_tasks: plugins/mail.yml
+
+# MS SQL plugins
+- include_tasks: plugins/mssql.yml
+
+# NRPE plugins
+- include_tasks: plugins/nrpe.yml
+
+# PostgreSQL plugins
+- include_tasks: plugins/postgres.yml
+
+# Samba AD plugins
+- include_tasks: plugins/samba_ad.yml
+
+# SSSD plugins
+- include_tasks: plugins/sssd.yml
+
+# Samba plugins
+- include_tasks: plugins/samba.yml
+
+# ZFS plugins
+- include_tasks: plugins/zfs.yml
