@@ -1,25 +1,36 @@
 ---
 - name: Install the Harisekhon Plugins
+  when: >
+    icinga2_plugins_harisekhon
+    or ansible_fqdn == icinga2_master_inventory_hostname
   block:
     - name: Install Docker
-      import_role:
+      ansible.builtin.import_role:
         name: mmartinello.docker
 
     - name: Install Docker PIP package
-      pip:
+      ansible.builtin.pip:
         name: "docker"
         state: present
 
     - name: Install Harisekhon Plugins
-      docker_image:
+      community.docker.docker_image:
         name: harisekhon/nagios-plugins
         source: pull
 
+    - name: Deploy fix for RabbitMQ check plugin
+      ansible.builtin.template:
+        src: templates/harisekhon-rabbitmq_check-fix.sh.j2
+        dest: "{{ icinga2_dynamic_plugins_src_dir }}/harisekhon-rabbitmq_check-fix.sh"
+        mode: "0750"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+
     - name: Deploy Harisekhon Plugins Commands Configuration File
-      template:
+      ansible.builtin.template:
         src: "templates/plugins/harisekhon.conf.j2"
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/harisekhon.conf"
+        mode: "0644"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
       notify: Reload Icinga2
-  when: >
-    icinga2_plugins_harisekhon
-    or ansible_fqdn == icinga2_master_inventory_hostname

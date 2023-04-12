@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Mattia Martinello 15/12/2022
+# This command executes the RabbitMQ check from HariSekhon Nagios plugins
+# (https://github.com/HariSekhon/Nagios-Plugins)
+
+# We found that the check_rabbitmq.py script is bugged:
+# "the body of the message is bytes and the expected message is string.
+# They are trying to compare that and the test fails so it never stops consumig
+# and the connection ends because of a timeout"
+
+# This Bash script execute 'sed' to fix the bugged line in the script before
+# executing it
+
+arguments="$@"
+command="docker run --rm harisekhon/nagios-plugins /bin/bash -c \"sed -i 's/message = body/message = body.decode()/' check_rabbitmq.py; check_rabbitmq.py $arguments\""
+
+eval "$command"
