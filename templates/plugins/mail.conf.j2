@@ -10,7 +10,7 @@ apply Service for (service_name => service_config in host.vars.smtp) {
 
   vars += service_config
 
-  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+  if (host.vars.client_endpoint && service_config.command_endpoint != "local") {
     command_endpoint = host.vars.client_endpoint
   }
 }
@@ -23,7 +23,7 @@ apply Service for (service_name => service_config in host.vars.ssmtp) {
 
   vars += service_config
 
-  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+  if (host.vars.client_endpoint && service_config.command_endpoint != "local") {
     command_endpoint = host.vars.client_endpoint
   }
 }
@@ -36,7 +36,7 @@ apply Service for (service_name => service_config in host.vars.imap) {
 
   vars += service_config
 
-  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+  if (host.vars.client_endpoint && service_config.command_endpoint != "local") {
     command_endpoint = host.vars.client_endpoint
   }
 }
@@ -49,7 +49,7 @@ apply Service for (service_name => service_config in host.vars.simap) {
 
   vars += service_config
 
-  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+  if (host.vars.client_endpoint && service_config.command_endpoint != "local") {
     command_endpoint = host.vars.client_endpoint
   }
 }
@@ -71,7 +71,7 @@ apply Service for (service_name => service_config in host.vars.spop) {
 
   vars += service_config
 
-  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+  if (host.vars.client_endpoint && service_config.command_endpoint != "local") {
     command_endpoint = host.vars.client_endpoint
   }
 }
