@@ -1,0 +1,84 @@
+---
+- name: Set variables
+  block:
+    - name: Set plugin files
+      ansible.builtin.set_fact:
+        _plugin_files:
+          - "check_pve.rb"
+
+    - name: Set icon files
+      ansible.builtin.set_fact:
+        _icons_list:
+          - "pve.png"
+
+- name: Check if files are available
+  block:
+    - name: Check if the plugin files are available
+      ansible.builtin.stat:
+        path: "{{ icinga2_dynamic_plugins_src_dir }}/{{ item }}"
+      delegate_to: localhost
+      loop: "{{ _plugin_files }}"
+      register: _plugin_files_exists
+      become: false
+
+    - name: Set var
+      ansible.builtin.set_fact:
+        _plugin_should_be_installed: true
+
+    - name: Set var
+      ansible.builtin.set_fact:
+        _plugin_should_be_installed: false
+      loop: "{{ _plugin_files }}"
+      loop_control:
+        index_var: index
+      when: not _plugin_files_exists.results[index].stat.exists
+
+- name: Install the PVE check plugin
+  when: >
+    ansible_system == "Linux"
+    and _plugin_should_be_installed
+    and (
+      icinga2_client_vars.pve is defined
+      or icinga_client_vars.check_pve is defined
+      or ansible_fqdn == icinga2_master_inventory_hostname
+    )
+  block:
+    - name: Install plugin dependencies
+      ansible.builtin.package:
+        name: ruby
+        state: present
+      when: ansible_os_family | lower in icinga2_apt_distros
+
+    - name: Copy the check_pve plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_dynamic_plugins_src_dir }}/{{ item }}"
+        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/{{ item }}"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+        mode: '0750'
+      loop: "{{ _plugin_files }}"
+
+- name: Copy the icons
+  ansible.builtin.copy:
+    src: "files/icons/{{ item }}"
+    dest: "{{ icinga2_plugins_icons_dir_path }}/{{ item }}"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0644'
+  loop: "{{ _icons_list }}"
+  when: >
+    ansible_fqdn == icinga2_master_inventory_hostname
+    and icinga2_plugins_icons_install
+
+- name: Copy the services definition file
+  ansible.builtin.template:
+    src: plugins/pve.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/pve.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Reload Icinga2
+  when: >
+    icinga2_client_vars.pve is defined
+    or icinga2_client_vars.check_pve is defined
+    or ansible_fqdn == icinga2_master_inventory_hostname

@@ -1,0 +1,1010 @@
+###############################################################################
+# System uptime
+
+object CheckCommand "_uptime" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_uptime" ]
+
+    arguments = {
+        "-w" = {
+            value = "$uptime_warning$"
+            description = "Report WARNING if system has been up for less then specified number of minutes"
+        }
+        "-c" = {
+            value = "$uptime_critical$"
+            description = "Report CRITICAL if system has been up for less then specified number of minutes"
+        }
+    }
+}
+
+apply Service "System Uptime" {
+  import "generic-service"
+
+  check_command = "_uptime"
+
+  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && !host.vars.nrpe
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# System memory: Linux and FreeBSD hosts without NRPE
+
+object CheckCommand "_memory" {
+        command = [ PluginDir + "/check_memory" ]
+
+        arguments = {
+                "-w" = {
+                        value = "$memory_warning$"
+                        description = "Percent free/used when to warn"
+                }
+                "-c" = {
+                        value = "$memory_critical$"
+                        description = "Percent free/used when critical"
+                }
+        }
+
+        vars.memory_warning = "20%"
+        vars.memory_critical = "10%"
+}
+
+object CheckCommand "_check_mem" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_mem.pl" ]
+
+    arguments = {
+        "-u" = {
+            set_if = "$mem_used$"
+            description = "Check USED memory"
+        }
+        "-f" = {
+            set_if = "$mem_free$"
+            description = "Check FREE memory"
+        }
+        "-C" = {
+            set_if = "$mem_cache$"
+            description = "Count OS caches as FREE memory"
+        }
+        "-w" = {
+            value = "$mem_warning$"
+            description = "Percent free/used when to warn"
+        }
+        "-c" = {
+            value = "$mem_critical$"
+            description = "Percent free/used when critical"
+        }
+    }
+
+    vars.mem_used = false
+    vars.mem_free = true
+    vars.mem_cache = true
+    vars.mem_warning = 20
+    vars.mem_critical = 10
+}
+
+apply Service "System Memory" {
+  import "generic-service"
+
+  # check_command = "_memory"
+  check_command = "_check_mem"
+
+  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && !host.vars.nrpe && !host.vars.linuxfabrik_monitoring_plugins_installed
+
+  max_check_attempts = 120
+  retry_interval = 1m
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# check_rdp: TODO
+
+object CheckCommand "_check_rdp" {
+    import "ipv4-or-ipv6"
+
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_x224" ]
+
+    arguments = {
+        "-H" = {
+            value = "$rdp_address$"
+            description = "Address of the RDP Server"
+        }
+    }
+
+    vars.rdp_address = "$check_address$"
+}
+
+###############################################################################
+# Check files: assigned through 'check_files' host var
+
+object CheckCommand "_check_files" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_files.pl" ]
+
+    arguments = {
+        "-F" = {
+            value = "$files$"
+            description = "Which files to check"
+            required = true
+        }
+        "-D" = {
+            value = "$directory$"
+            description = "Directory name in which to check files"
+        }
+        "-T" = {
+            value = "$filetype$"
+            description = "Allows to specify if we should count only files or only directories"
+        }
+        "-r" = {
+            set_if = "$recurse$"
+            description = "When present ls will do 'ls -r' and recursive check in subdirectories"
+        }
+        "-l" = {
+            set_if = "$lsfiles$"
+            description = "When present this adds specified file spec to ls"
+        }
+        "-f" = {
+            set_if = "$perfparse$"
+            description = "Give number of files and file oldest file age in perfout"
+        }
+        "-w" = {
+            value = "$warn$"
+            description = "Warning level(s) for number of files"
+        }
+        "-c" = {
+            value = "$crit$"
+            description = "Critical level(s) for number of files"
+        }
+        "-a" = {
+            value = "$files_age$"
+        }
+        "-s" = {
+            value = "$files_size$"
+        }
+        "-S" = {
+            value = "$files_sumsize$"
+        }
+    }
+}
+
+apply Service for (files => config in host.vars.check_files) {
+  import "generic-service"
+
+  check_command = "_check_files"
+
+  vars += config
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# check_galera_cluster: TODO
+
+object CheckCommand "_check_galera_cluster" {
+    import "ipv4-or-ipv6"
+
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_galera_cluster" ]
+
+    arguments = {
+        "-H" = {
+            value = "$galera_host$"
+            description = "MySQL host. Default is localhost."
+        }
+        "-P" = {
+            value = "$galera_port$"
+            description = "MySQL port. Default is 3306."
+        }
+        "-u" = {
+            value = "$galera_user$"
+            description = "MySQL user."
+            required = true
+        }
+        "-p" = {
+            value = "$galera_password$"
+            description = "MySQL password."
+        }
+        "-w" = {
+            value = "$galera_warning$"
+            description = "Sets minimum number of nodes in the cluster when WARNING is raised. (default is same as critical)."
+        }
+        "-c" = {
+            value = "$galera_critical$"
+            description = "Sets minimum number of nodes in the cluster when CRITICAL is raised. (default is 2)."
+        }
+        "-f" = {
+            value = "$galera_float$"
+            description = "Sets critical value of wsrep_flow_control_paused (default is 0.1)."
+        }
+        "-0" = {
+            value = "$galera_not_primary$"
+            description = "Rise CRITICAL if the node is not primary."
+        }
+    }
+
+    vars.galera_host = "$check_address$"
+}
+
+# check_megaraid_sas: TODO
+
+object CheckCommand "_check_megaraid_sas" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_megaraid_sas" ]
+
+    arguments = {
+        "-b" = {
+            set_if = "$megaraid_check_battery$"
+            description = "check Battery Back Up status"
+        }
+        "-B" = {
+            set_if = "$megaraid_battery_backup_nowarn$"
+            description = "battery back up charging state is not a warning"
+        }
+        "-c" = {
+            set_if = "$megaraid_check_current_cache_policy_is_default$"
+            description = "check that current cache policy matches default policy"
+        }
+        "-m" = {
+            value = "$megaraid_ignore_media$"
+            description = "is the number of media errors to ignore"
+        }
+        "--consistency_check_is_ok" = {
+            set_if = "$megaraid_consistency_check_is_ok$"
+            description = "consistency checks are OK"
+        }
+        "--missing_is_ok" = {
+            set_if = "$megaraid_missing_is_ok$"
+            description = "test returns OK if MegaCli is not present"
+        }
+        "--no_battery_is_ok" = {
+            set_if = "$megaraid_no_battery_is_ok$"
+            description = "lack of a battery is not a problem"
+        }
+        "-p" = {
+            value = "$megaraid_ignored_predictive$"
+            description = "is the predictive error count to ignore"
+        }
+        "-o" = {
+            value = "$megaraid_ignored_other$"
+            description = "is the number of other disk errors to ignore"
+        }
+        "-s" = {
+            value = "$megaraid_hotspares$"
+            description = "is how many hotspares are attached to the controller"
+        }
+        "--sudo" = {
+            set_if = "$megaraid_sudo$"
+            description = "should sudo be enabled"
+        }
+    }
+
+    vars.megaraid_sudo = true
+}
+
+###############################################################################
+# check_zfs: TODO
+
+object CheckCommand "_check_zfs" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_zfs" ]
+}
+
+###############################################################################
+# Drive SMART: assigned through 'smart' host var
+
+object CheckCommand "_check_smart" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_smart.zcu.pl" ]
+
+    arguments = {
+        "-d" = {
+            value = "$smart_device$"
+            description = "a device to be SMART monitored, eg. /dev/sda"
+        }
+        "-i" = {
+            value = "$smart_interface$"
+            description = "ata, sat, scsi, megaraid, depending upon the device's interface type"
+        }
+        "-r" = {
+            value = "$smart_realloc$"
+            description = "minimum of accepted reallocated sectors (actual value: 0)"
+        }
+        "-p" = {
+            value = "$smart_pending$"
+            description = "minimum of accepted pending sectors (actual value: 0)"
+        }
+        "-c" = {
+            set_if = "$smart_checksum_disable$"
+            description = "disable checksum log structure (default: enable)"
+        }
+        "-l" = {
+            set_if = "$smart_log_disable$"
+            description = "disable check of SMART logs (default: enable)"
+        }
+        "-f" = {
+            set_if = "$smart_failure_disable$"
+            description = "disable warning when disk may be close to failure"
+        }
+        "--debug" = {
+            set_if = "$smart_debug$"
+            description = "show debugging information"
+        }
+    }
+}
+
+apply Service for (smart => config in host.vars.smart) {
+  import "generic-service"
+
+  check_command = "_check_smart"
+
+  vars += config
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+
+###############################################################################
+# check_mysql_query: TODO
+
+object CheckCommand "_check_mysql_query" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/advanced-nagios-plugins" + "/check_mysql_query.pl" ]
+
+    arguments = {
+        "-H" = {
+            value = "$check_mysql_query_host$"
+            description = "MySQL host ($MYSQL_HOST, $HOST)"
+        }
+        "-P" = {
+            value = "$check_mysql_query_port$"
+            description = "MySQL port ($MYSQL_PORT, $PORT, default: 3306)"
+        }
+        "-u" = {
+            value = "$check_mysql_query_user$"
+            description = "MySQL user ($MYSQL_USERNAME, $MYSQL_USER, $USERNAME, $USER)"
+        }
+        "-p" = {
+            value = "$check_mysql_query_password$"
+            description = "MySQL password ($MYSQL_PASSWORD, $PASSWORD)"
+        }
+        "-d" = {
+            value = "$check_mysql_query_database$"
+            description = "MySQL database ($MYSQL_DATABASE)"
+        }
+        "-s" = {
+            value = "$check_mysql_query_socket$"
+            description = "MySQL socket file through which to connect (defaults: /var/lib/mysql/mysql.sock, /tmp/mysql.sock)"
+        }
+        "-q" = {
+            value = "$check_mysql_query_query$"
+            description = "MySQL query to execute"
+        }
+        "-f" = {
+            value = "$check_mysql_query_field$"
+            description = "Field name / number to check the results of (defaults to '1' for the first field)"
+        }
+        "-e" = {
+            set_if = "$check_mysql_query_epoch$"
+            description = "Subtract result from current time in epoch format from result (useful for timestamp based comparisons)"
+        }
+        "-m" = {
+            value = "$check_mysql_query_message$"
+            description = "Message to output after result. Can take a printf string with a single substitution (defaults to 'query returned')"
+        }
+        "-n" = {
+            set_if = "$check_mysql_query_message_prepend$"
+            description = "Display message before rather than after result (prepend)"
+        }
+        "-o" = {
+            value = "$check_mysql_query_output$"
+            description = "Exact output to expect"
+        }
+        "-r" = {
+            value = "$check_mysql_query_regex$"
+            description = "Regex to match the result against"
+        }
+        "-w" = {
+            value = "$check_mysql_query_warning$"
+            description = "Warning  threshold or ran:ge (inclusive)"
+        }
+        "-c" = {
+            value = "$check_mysql_query_critical$"
+            description = "Critical threshold or ran:ge (inclusive)"
+        }
+        "-g" = {
+            set_if = "$check_mysql_query_graph$"
+            description = "Perfdata output for graphing"
+        }
+        "-l" = {
+            value = "$check_mysql_query_label$"
+            description = "Perfdata label. If not specified uses field name or Undefined if field name doesn't match a known regex of chars"
+        }
+        "-U" = {
+            value = "$check_mysql_query_units$"
+            description = "Units of measurement for graphing output (%/s/ms/us/B/KB/MB/TB/c)"
+        }
+        "-T" = {
+            set_if = "$check_mysql_query_short$"
+            description = "Shorten output, do not output message just result"
+        }
+        "-Q" = {
+            value = "$check_mysql_query_no_querytime$"
+            description = "Do not output the mysql query time"
+        }
+        "-t" = {
+            value = "$check_mysql_query_timeout$"
+            description = "Timeout in secs ($TIMEOUT, default: 10)"
+        }
+    }
+}
+
+###############################################################################
+# check_kopano: TODO
+
+object CheckCommand "_check_kopano" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_kopano.sh" ]
+
+    arguments = {
+        "--param" = {
+            value = "$check_kopano_param$"
+            description = "Set what to query: queueln, queueage, threads, threads_idle. Default is threads_idle"
+        }
+        "-w" = {
+            value = "$check_kopano_warning$"
+            description = "Exit with WARNING status if above INTEGER"
+        }
+        "-c" = {
+            value = "$check_kopano_critical$"
+            description = "Exit with CRITICAL status if above INTEGER"
+        }
+    }
+}
+
+###############################################################################
+# Mount points: assigned through 'check_mountpoints' host var
+
+object CheckCommand "_check_mountpoints" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_mountpoints.sh" ]
+
+    arguments = {
+        "--mountpoint" = {
+            value = "$check_mountpoints_mountpoint$"
+            description = "list of mountpoints to check. Ignored when -a is given"
+            skip_key = true
+            order = -1
+        }
+        "-m" = {
+            value = "$check_mountpoints_mtab$"
+            description = "Use this mtab instead (default: /proc/mounts)"
+        }
+        "-f" = {
+            value = "$check_mountpoints_fstab$"
+            description = "Use this fstab instead (default: /etc/fstab)"
+        }
+        "-N" = {
+            value = "$check_mountpoints_fs_field$"
+            description = "FS Field number in fstab (default: 3)"
+        }
+        "-M" = {
+            value = "$check_mountpoints_mount_field$"
+            description = "Mount Field number in fstab (default: 2)"
+        }
+        "-O" = {
+            value = "$check_mountpoints_option_field$"
+            description = "Option Field number in fstab (default: 4)"
+        }
+        "-T" = {
+            value = "$check_mountpoints_nfs_timeout$"
+            description = "Responsetime at which an NFS is declared as staled (default: 3)"
+        }
+        "-L" = {
+            set_if = "$check_mountpoints_softlinks$"
+            description = "Allow softlinks to be accepted instead of mount points"
+        }
+        "-i" = {
+            set_if = "$check_mountpoints_ignore_fstab$"
+            description = "Ignore fstab. Do not fail just because mount is not in fstab. (default: unset)"
+        }
+        "-a" = {
+            set_if = "$check_mountpoints_autoselect_mounts$"
+            description = "Autoselect mounts from fstab (default: unset)"
+        }
+        "-A" = {
+            set_if = "$check_mountpoints_fstab_autoselect$"
+            description = "Autoselect from fstab. Return OK if no mounts found. (default: unset)"
+        }
+        "-E" = {
+            value = "$check_mountpoints_exclude$"
+            description = "Use with -a or -A to exclude a path from fstab. Use backslash+pipe between paths for multiple. (default: unset)"
+        }
+        "-o" = {
+            set_if = "$check_mountpoints_ignore_noauto$"
+            description = "When autoselecting mounts from fstab, ignore mounts having noauto flag. (default: unset)"
+        }
+        "-w" = {
+            set_if = "$check_mountpoints_writetest$"
+            description = "Writetest. Touch file $mountpoint/.mount_test_from_$(hostname) (default: unset)"
+        }
+        "-e" = {
+            value = "$check_mountpoints_extra$"
+            description = "Extra arguments for df (default: unset)"
+        }
+    }
+
+    vars.check_mountpoints_fstab_autoselect = true
+    vars.check_mountpoints_ignore_noauto = true
+}
+
+apply Service "Mount Points" {
+  import "generic-service"
+
+  check_command = "_check_mountpoints"
+
+  assign where host.vars.os == "Linux" && host.vars.check_mountpoints != false
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# MySQL Slave: assigned through 'mysql_slave' host var
+
+object CheckCommand "_check_mysql_slavestatus" {
+    import "ipv4-or-ipv6"
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_mysql_slavestatus.sh" ]
+
+    arguments = {
+        "-H" = {
+            value = "$check_mysql_slavestatus_hostname$"
+            description = "Hostname or IP of slave server"
+        }
+        "-P" = {
+            value = "$check_mysql_slavestatus_port$"
+            description = "Port of slave server"
+        }
+        "-u" = {
+            value = "$check_mysql_slavestatus_username$"
+            description = "Username of DB-user"
+        }
+        "-p" = {
+            value = "$check_mysql_slavestatus_password$"
+            description = "Password of DB-user"
+        }
+        "-s" = {
+            value = "$check_mysql_slavestatus_connection_name$"
+            description = "Connection name (optional, with multi-source replication)"
+        }
+        "-w" = {
+            value = "$check_mysql_slavestatus_warning$"
+            description = "Delay in seconds for Warning status (optional)"
+        }
+        "-c" = {
+            value = "$check_mysql_slavestatus_critical$"
+            description = "Delay in seconds for Critical status (optional)"
+        }
+    }
+
+    vars.check_mysql_slavestatus_hostname = "$check_address$"
+    vars.check_mysql_slavestatus_port = 3306
+}
+
+apply Service for (mysql_slave => config in host.vars.mysql_slave) {
+  import "generic-service"
+  check_command = "_check_mysql_slavestatus"
+  vars += config
+}
+
+###############################################################################
+# Running kernel
+
+object CheckCommand "_check_kernel" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_kernel.sh" ]
+}
+
+apply Service "Running Kernel" {
+  import "generic-service"
+
+  check_command = "_check_kernel"
+
+  enable_notifications = false
+
+  assign where host.vars.os == "Linux" && host.vars.check_kernel != false && host.vars.vm_type != "lxc" && host.vars.vm_type != "openvz"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# YUM updates: assigned on CentOS, Redhat Enterprise and Sangoma hosts
+
+object CheckCommand "_check_yum" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_yum.py" ]
+
+    arguments = {
+        "-A" = {
+            value = "$yum_all_updates$"
+            description = "Does not distinguish between security and non-security updates, but returns critical for any available update."
+        }
+        "-W" = {
+            value = "$yum_warn_on_any_update$"
+            description = "Warns if there are any (non-security) package updates available."
+        }
+        "-C" = {
+            value = "$yum_cache_only$"
+            description = "Run entirely from cache and do not update the cache when running yum."
+        }
+        "-c" = {
+            value = "$yum_config$"
+            description = "Run with custom repository config"
+        }
+        "-N" = {
+            value = "$yum_no_warn_on_lock$"
+            description = "Return OK instead of WARNING when yum is locked and fails to check for updates due to another instance running"
+        }
+        "-e" = {
+            value = "$yum_enablerepo$"
+            description = "Explicitly enables a reposity when calling yum. Can take a comma separated list of repositories"
+        }
+        "-d" = {
+            value = "$yum_disablerepo$"
+            description = "Explicitly disables a repository when calling yum. Can take a comma separated list of repositories"
+        }
+        "--disableplugin" = {
+            value = "$yum_disableplugin$"
+            description = "Explicitly disables a plugin when calling yum. Can take a comma separated list of plugins"
+        }
+        "-t" = {
+            value = "$yum_timeout$"
+            description = "Sets a timeout in seconds after which the plugin will exit (defaults to 30 seconds)"
+        }
+        "-" = {
+            value = "$yum_verbose$"
+            description = "Verbose mode"
+        }
+    }
+}
+
+apply Service "YUM Packages Updates" {
+  import "generic-service"
+
+  check_command = "_check_yum"
+
+  assign where host.vars.distro == "CentOS" || host.vars.distro == "Redhat Enterprise Linux" || host.vars.distro == "Sangoma"
+
+  vars.yum_timeout = 60
+  vars.yum_disablerepo = "epel"
+
+  enable_notifications = false
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# Icecast2: assigned through 'icecast2' host var
+
+object CheckCommand "_icecast2" {
+    import "ipv4-or-ipv6"
+
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_ice2" ]
+
+    arguments = {
+        "-H" = {
+            value = "$icecast2_host$"
+            description = "remote host"
+        }
+        "-m" = {
+            value = "$icecast2_mount$"
+            description = "remote mount"
+        }
+        "-p" = {
+            value = "$icecast2_port$"
+            description = "remote port"
+        }
+        "-v" = {
+            set_if = "$icecast2_verbose$"
+            description = "verbose mode"
+        }
+        "-w" = {
+            set_if = "$icecast2_warning$"
+            description = "treat ICY issues as warnings"
+        }
+    }
+
+    vars.icecast2_hostname = "$check_address$" 
+    vars.icecast2_port = 80
+}
+
+apply Service for (icecast2 => config in host.vars.icecast2) {
+  import "generic-service"
+  check_command = "_icecast2"
+  vars += config
+}
+
+###############################################################################
+# DNS Service: assigned on 'check_mountpoints' host var = true
+
+object CheckCommand "_dns-server" {
+    import "ipv4-or-ipv6"
+
+    command = [ PluginDir + "/check_dns" ]
+
+    arguments = {
+        "-H" = {
+            value = "$dns_lookup$"
+            description = "The name or address you want to query."
+        }
+        "-s" = {
+            value = "$dns_server$"
+            description = "Optional DNS server you want to use for the lookup."
+        }
+    }
+
+    vars.dns_lookup = "www.example.com"
+    vars.dns_server = "$check_address$"
+}
+
+apply Service "DNS Service" {
+  import "generic-service"
+  check_command = "_dns-server"
+  assign where host.vars.is_dns
+}
+
+###############################################################################
+# OpenVPN: assigned through 'openvpn' host var
+apply Service for (openvpn => config in host.vars.openvpn) {
+  import "generic-service"
+
+  check_command = "_udp_port"
+
+  vars += config
+  vars.udp_service = "rblcheckd"
+
+  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+object CheckCommand "_udp_port" {
+    import "ipv4-or-ipv6"
+
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_udp_port" ]
+
+    arguments = {
+        "-H" = {
+            value = "$udp_host$"
+            description = "Name or IP of remote host"
+        }
+        "-p" = {
+            value = "$udp_port$"
+            description = "UDP port number to check"
+        }
+        "-s" = {
+            value = "$udp_service$"
+            description = "Name of the service that should be listening on the port"
+        }
+    }
+
+    vars.udp_host = "$check_address$"
+}
+
+###############################################################################
+# CPU Usage: assigned on Linux hosts
+
+object CheckCommand "_check_cpu" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_cpu.py" ]
+
+    arguments = {
+        "-w" = {
+            value = "$cpu_warn$"
+            description = "generate warning  if total cpu exceeds num (default: 95)"
+        }
+        "-c" = {
+            value = "$cpu_crit$"
+            description = "generate critical if total cpu exceeds num (default: 98)"
+        }
+        "-W" = {
+            value = "$cpu_warn_any$"
+            description = "generate warning  if any single cpu exceeds num (default: 98)"
+        }
+        "-C" = {
+            value = "$cpu_crit_any$"
+            description = "generate critical if any single cpu exceeds num (default: 100 (off))"
+        }
+        "-i" = {
+            value = "$cpu_io_warn$"
+            description = "generate warning  if any single cpu exceeds num in io_wait (default: 90)"
+        }
+        "-I" = {
+            value = "$cpu_io_crit$"
+            description = "generate critical if any single cpu exceeds num in io_wait (default: 98)"
+        }
+        "--io-warn-overall" = {
+            value = "$cpu_io_warn_overall$"
+            description = "generate warning  if overall cpu exceeds num in io_wait (default: 100 (off))"
+        }
+        "--io-crit-overall" = {
+            value = "$cpu_io_crit_overall$"
+            description = "generate critical if overall cpu exceeds num in io_wait (default: 100 (off))"
+        }
+        "-s" = {
+            value = "$cpu_steal_warn$"
+            description = "generate warning  if any single cpu exceeds num in steal (default: 30)"
+        }
+        "-S" = {
+            value = "$cpu_$steal_crit"
+            description = "generate critical if any single cpu exceeds num in steal (default: 80)"
+        }
+        "-p" = {
+            value = "$cpu_period$"
+            description = "sample cpu usage over num seconds"
+        }
+        "-a" = {
+            set_if = "$cpu_abs$"
+            description = "generate performance stats in cpu-ticks (jiffies), as well as percent"
+        }
+        "-A" = {
+            set_if = "$cpu_abs_only$"
+            description = "generate performance stats in cpu-ticks (jiffies), instead of percent"
+        }
+    }
+}
+
+apply Service "CPU usage" {
+  import "generic-service"
+
+  check_command = "_check_cpu"
+
+  assign where host.vars.os == "Linux"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# Video: assigned through 'video' host var
+
+object CheckCommand "_check_video" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_video.py" ]
+
+    arguments = {
+        "-r" = {
+            value = "$video_url$"
+            description = "URL"
+        }
+        "-vw" = {
+            value = "$video_width$"
+            description = "Expected Width"
+        }
+        "-vh" = {
+            value = "$video_height$"
+            description = "Expected Height"
+        }
+        "-i" = {
+            value = "$video_streamindex$"
+            description = "ffmpeg stream index"
+        }
+        "-s" = {
+            value = "$video_probesize$"
+            description = "Size of video snippet"
+        }
+    }
+}
+
+apply Service for (video => config in host.vars.video) {
+  import "generic-service"
+  check_command = "_check_video"
+  vars += config
+}
+
+###############################################################################
+# OCR4Linux: assigned through 'ocr4linux' host var
+
+object CheckCommand "_check_ocr4linux" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_ocr4linux" ]
+
+    arguments = {
+        "-s" = {
+            value = "$ocr4linux_serial$"
+            description = "The licensing serial number to check"
+        }
+        "-d" = {
+            value = "$ocr4linux_program_dir$"
+            description = "The path of the program directory"
+        }
+        "-w" = {
+            value = "$ocr4linux_warning$"
+            description = "The warning percentage level"
+        }
+        "-c" = {
+            value = "$ocr4linux_critical$"
+            description = "The critical percentage level"
+        }
+        "--debug" = {
+            value = "$ocr4linux_debug$"
+            description = "Print debugging info to console"
+        }
+    }
+}
+
+apply Service for (ocr4linux => config in host.vars.ocr4linux) {
+  import "generic-service"
+  check_command = "_check_ocr4linux"
+  vars += config
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# Journalctl: assigned through 'journalctl' host var
+
+object CheckCommand "_check_journalctl" {
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_journalctl.sh" ]
+
+    arguments = {
+        "--service" = {
+            value = "$journalctl_service$"
+            description = "the service to check, mandatory. eg. `vault.service`"
+            skip_key = true
+            required = true
+            order = -3
+        }
+        "--time_ago" = {
+            value = "$journalctl_time_ago$"
+            description = "the seconds backward in time, since when searching for ERROR(s). Default 6000 (10 mins)"
+            skip_key = true
+            required = true
+            order = -2
+        }
+        "--time-ago" = {
+            value = "$journalctl_time_type$"
+            description = "seconds | minutes"
+            skip_key = true
+            required = true
+            order = -1
+        }
+    }
+
+    vars.journalctl_time_ago = "65"
+    vars.journalctl_time_type = "seconds"
+}
+
+apply Service for (service_name => service_config in host.vars.journalctl) {
+  import "generic-service"
+  check_command = "_check_journalctl"
+  vars += service_config
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+###############################################################################
+# Logstash process: assigned through 'logstash' host var
+apply Service for (service_name => service_config in host.vars.logstash) {
+  import "generic-service"
+
+  check_command = "procs"
+  name = service_name + " - Process"
+
+  vars.procs_command = "java"
+  if (service_config.process_argument != "") {
+    vars.procs_argument = service_config.process_argument
+  } else {
+    vars.procs_argument = "org.logstash.Logstash --path.settings /etc/logstash"
+  }
+
+  # At least 1 process must be running
+  vars.procs_warning = "1:"
+  vars.procs_critical = "1:"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}

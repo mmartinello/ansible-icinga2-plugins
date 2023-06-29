@@ -1,0 +1,37 @@
+###############################################################################
+# check_backuppc: TODO
+
+object CheckCommand "_check_backuppc" {
+    command = [ "sudo", "-u", "backuppc", "{{ icinga2_dynamic_plugins_dest_dir }}/check_backuppc/check_backuppc" ]
+
+    arguments = {
+        "-H" = {
+            value = "$check_backuppc_hostname$"
+            description = "only check the specified host"
+        }
+        "-x" = {
+            value = "$check_backuppc_exclude$"
+            description = "do not check the specified host"
+        }
+        "-o" = {
+            value = "$check_backuppc_owner$"
+            description = "do only hosts of specified user"
+        }
+        "-f" = {
+            set_if = "$check_backuppc_force$"
+            description = "force check even if host is disabled"
+        }
+        "-w" = {
+            value = "$check_backuppc_warning$"
+            description = "days old of last good backup to cause a warning"
+        }
+        "-c" = {
+            set_if = "$check_backuppc_critical$"
+            description = "days old of last good backup to cause a warning"
+        }
+        "-v" = {
+            set_if = "$check_backuppc_verbose$"
+            description = "increase verbosity"
+        }
+    }
+}

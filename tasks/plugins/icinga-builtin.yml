@@ -1,0 +1,69 @@
+---
+- name: Set variables
+  block:
+    - name: Set plugin files
+      ansible.builtin.set_fact:
+        _plugin_files: []
+
+    - name: Set package dependencies
+      ansible.builtin.set_fact:
+        _package_dependencies: []
+
+    - name: Set icon files
+      ansible.builtin.set_fact:
+        _icons_list: []
+
+- name: Check if files are available
+  block:
+    - name: Check if the plugin files are available
+      ansible.builtin.stat:
+        path: "{{ icinga2_dynamic_plugins_src_dir }}/{{ item }}"
+      delegate_to: localhost
+      loop: "{{ _plugin_files }}"
+      register: _plugin_files_exists
+      become: false
+
+    - name: Set var
+      ansible.builtin.set_fact:
+        _plugin_should_be_installed: true
+
+- name: Install plugins
+  when: _plugin_should_be_installed
+  block:
+    - name: Install plugin dependencies
+      ansible.builtin.package:
+        name: "{{ _package_dependencies }}"
+        state: present
+      when: ansible_os_family | lower in icinga2_apt_distros
+
+    - name: Copy plugin files
+      ansible.builtin.copy:
+        src: "{{ icinga2_dynamic_plugins_src_dir }}/{{ item }}"
+        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/{{ item }}"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+        mode: '0750'
+      loop: "{{ _plugin_files | default([]) }}"
+      ignore_errors: true
+      register: ignore_errors_register
+
+- name: Copy the icons
+  ansible.builtin.copy:
+    src: "files/icons/{{ item }}"
+    dest: "{{ icinga2_plugins_icons_dir_path }}/{{ item }}"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0644'
+  loop: "{{ _icons_list | default([]) }}"
+  when: >
+    ansible_fqdn == icinga2_master_inventory_hostname
+    and icinga2_plugins_icons_install
+
+- name: Copy the services definition file
+  ansible.builtin.template:
+    src: plugins/icinga-builtin.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/builtin.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Reload Icinga2

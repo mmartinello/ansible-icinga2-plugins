@@ -1,0 +1,443 @@
+# {{ ansible_managed }}
+
+/*
+Commands and services for PVE checks:
+  - check_pve (https://gitlab.com/6uellerBpanda/check_pve)
+*/ 
+
+
+#
+# Check Commands
+###############################################################################
+
+# check_nvme (https://gitlab.com/6uellerBpanda/check_pve)
+object CheckCommand "_check_pve" {
+    import "ipv4-or-ipv6"
+
+    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_pve.rb" ]
+
+    arguments = {
+        "--mode" = {
+            value = "$pve_mode$"
+            description = "Mode to check"
+            required = true
+            order = -1
+        }
+        "--address" = {
+            value = "$pve_address$"
+            description = "PVE host address"
+        }
+        "--insecure" = {
+            set_if = "$pve_insecure$"
+            description = "No SSL verification"
+        }
+        "--node" = {
+            value = "$pve_node$"
+            description = "PVE Node name"
+        }
+        "--username" = {
+            value = "$pve_username$"
+            description = "Username with auth realm e.g. monitoring@pve"
+        }
+        "--password" = {
+            value = "$pve_password$"
+            description = "Password"
+        }
+        "--warning" = {
+            value = "$pve_warning$"
+            description = "Warning threshold"
+        }
+        "--critical" = {
+            value = "$pve_critical$"
+            description = "Critical threshold"
+        }
+        "--unit" = {
+            value = "$pve_unit$"
+            description = "Unit - kb, mb, gb, tb"
+        }
+        "--name" = {
+            value = "$pve_name$"
+            description = "Name for storage or user filter for tasks"
+        }
+        "--vmid" = {
+            value = "$pve_vmid$"
+            description = "ID of qemu/lxc machine"
+        }
+        "--type" = {
+            value = "$pve_type$"
+            description = "VM type lxc, qemu or type filter for tasks"
+        }
+        "--exclude" = {
+            value = "$pve_exclude$"
+            description = "Exclude (regex)"
+        }
+        "--timeframe" = {
+            value = "$pve_timeframe$"
+            description = "Timeframe for vm checks: hour,day,week,month or year"
+        }
+        "--cf" = {
+            value = "$pve_cf$"
+            description = "RRD cf: average or max"
+        }
+        "--lookback" = {
+            value = "$pve_lookback$"
+            description = "Lookback in seconds"
+        }
+    }
+
+    vars.pve_address = "$check_address$"
+}
+
+
+#
+# Services
+###############################################################################
+
+# Generic service assignment
+# Assigned with '_check_pve' host var
+apply Service for (service_name => service_config in host.vars._check_pve) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "pve.png"
+  }
+
+  check_command = "_check_pve"
+  vars += service_config
+}
+
+# Cluster status (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - Cluster Status" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "pve.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "cluster-status"
+
+  assign where host.vars.pve
+}
+
+# SMART (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - Disk SMART Status" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "disk-smart.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-smart-status"
+
+  # Exclude
+  if (vars.smart_exclude) {
+    vars.pve_exclude = vars.smart_exclude
+  }
+
+  assign where host.vars.pve
+}
+
+# Updates (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - Updates" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "updates.png"
+  enable_notifications = false
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-updates-available"
+
+  assign where host.vars.pve
+}
+
+# Subscription (automatically assigned when host.vars.pve.pve_subscribed=true)
+apply Service "Proxmox VE - Subscription" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "pve.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-subscription-valid"
+
+  # Warning threshold
+  if (vars.subscription_warning) {
+    vars.pve_warning = vars.subscription_warning
+  } else {
+    vars.pve_warning = "60"
+  }
+
+  # Critical threshold
+  if (vars.subscription_critical) {
+    vars.pve_critical = vars.subscription_critical
+  } else {
+    vars.pve_critical = "15"
+  }
+
+  assign where host.vars.pve && host.vars.pve.pve_subscribed
+}
+
+# Services (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - Services" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "service.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-services-status"
+
+  # Exclude
+  if (vars.services_exclude) {
+    vars.pve_exclude = vars.services_exclude
+  }
+
+  assign where host.vars.pve
+}
+
+# Tasks (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - Tasks" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "pve.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-task-errors"
+
+  # Lookback
+  if (vars.tasks_lookback) {
+    vars.pve_lookback = vars.tasks_lookback
+  } else {
+    vars.pve_lookback = "3600"
+  }
+
+  # Name
+  if (vars.tasks_name) {
+    vars.pve_name = vars.tasks_name
+  }
+
+  # Type
+  if (vars.tasks_type) {
+    vars.pve_type = vars.tasks_type
+  }
+
+  # Exclude
+  if (vars.tasks_exclude) {
+    vars.pve_exclude = vars.tasks_exclude
+  }
+
+  assign where host.vars.pve
+}
+
+# Storage Usage (automatically assigned when host.vars.pve exists)
+apply Service for (storage_name in host.vars.pve.storage_names) {
+  import "generic-service"
+  name = "Proxmox VE - Storage '" + storage_name + "' Usage"
+
+  check_command = "_check_pve"
+  icon_image = "disk-usage.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-storage-usage"
+  vars.pve_name = storage_name
+
+  # Warning threshold
+  if (vars.storage_warning) {
+    vars.pve_warning = vars.storage_warning
+  } else {
+    vars.pve_warning = "40"
+  }
+
+  # Critical threshold
+  if (vars.storage_critical) {
+    vars.pve_critical = vars.storage_critical
+  } else {
+    vars.pve_critical = "60"
+  }
+
+  assign where host.vars.pve && host.vars.pve.storage_names != []
+}
+
+# Storage status (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - Storage Status" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "disk-smart.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-storage-status"
+
+  # Exclude
+  if (vars.storage_exclude) {
+    vars.pve_exclude = vars.storage_exclude
+  }
+
+  assign where host.vars.pve
+}
+
+# CPU Usage (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - CPU Usage" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "cpu-usage.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-cpu-usage"
+
+  # Warning threshold
+  if (vars.cpu_warning) {
+    vars.pve_warning = vars.cpu_warning
+  } else {
+    vars.pve_warning = "80"
+  }
+
+  # Critical threshold
+  if (vars.cpu_critical) {
+    vars.pve_critical = vars.cpu_critical
+  } else {
+    vars.pve_critical = "90"
+  }
+
+  assign where host.vars.pve
+}
+
+# Memory Usage (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - Memory Usage" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "memory-usage.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-memory-usage"
+
+  # Warning threshold
+  if (vars.memory_warning) {
+    vars.pve_warning = vars.memory_warning
+  } else {
+    vars.pve_warning = "90"
+  }
+
+  # Critical threshold
+  if (vars.memory_critical) {
+    vars.pve_critical = vars.memory_critical
+  } else {
+    vars.pve_critical = "95"
+  }
+
+  assign where host.vars.pve
+}
+
+# IO Wait (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - IO Wait" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "disk-io.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-io-wait"
+
+  # Warning threshold
+  if (vars.io_warning) {
+    vars.pve_warning = vars.iowait_warning
+  } else {
+    vars.pve_warning = "5"
+  }
+
+  # Critical threshold
+  if (vars.io_critical) {
+    vars.pve_critical = vars.iowait_critical
+  } else {
+    vars.pve_critical = "10"
+  }
+
+  assign where host.vars.pve
+}
+
+# Network usage (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - Network Usage" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "network-connections.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-net-in-usage"
+
+  # Warning threshold
+  if (vars.network_warning) {
+    vars.pve_warning = vars.network_warning
+  } else {
+    vars.pve_warning = "100"
+  }
+
+  # Critical threshold
+  if (vars.network_critical) {
+    vars.pve_critical = vars.network_critical
+  } else {
+    vars.pve_critical = "200"
+  }
+
+  assign where host.vars.pve
+}
+
+# KSM Usage (automatically assigned when host.vars.pve exists)
+apply Service "Proxmox VE - KSM Usage" {
+  import "generic-service"
+
+  check_command = "_check_pve"
+  icon_image = "memory-usage.png"
+
+  vars += host.vars.pve
+  vars.pve_mode = "node-ksm-usage"
+
+  # Warning threshold
+  if (vars.ksm_warning) {
+    vars.pve_warning = vars.ksm_warning
+  } else {
+    vars.pve_warning = "20"
+  }
+
+  # Critical threshold
+  if (vars.ksm_critical) {
+    vars.pve_critical = vars.ksm_critical
+  } else {
+    vars.pve_critical = "25"
+  }
+
+  # Unit
+  if (vars.ksm_unit) {
+    vars.pve_critical = vars.ksm_unit
+  } else {
+    vars.pve_unit = "gb"
+  }
+
+  assign where host.vars.pve
+}
+
+
+#
+# Groups
+###############################################################################
+
+# Host group
+object HostGroup "pve" {
+    display_name = "Proxmox Hosts"
+    assign where "pve" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "pve" {
+  display_name = "PVE Checks"
+
+  assign where match("_pve", service.check_command)
+}

@@ -1,0 +1,72 @@
+# {{ ansible_managed }}
+
+/*
+Commands and services for NVMe checks:
+  - check_nvme (https://exchange.icinga.com/vorlon/check_nvme)
+*/ 
+
+
+#
+# Check Commands
+###############################################################################
+
+# check_nvme (https://exchange.icinga.com/vorlon/check_nvme)
+object CheckCommand "_nvme" {
+    import "ipv4-or-ipv6"
+
+    command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_nvme" ]
+
+    arguments = {
+        "-d" = {
+            value = "$device$"
+            description = "device path"
+            required = true
+        }
+        "-s" = {
+            set_if = "$sudo$"
+            description = "call nvme smart-log using sudo"
+        }
+        "-e" = {
+            set_if = "$ignore_num_err_log$"
+            description = "ignore num_err_log_entries for state"
+        }
+    }
+}
+
+
+#
+# Services
+###############################################################################
+
+# Check NVMe drive: assigned through 'nvme' host var
+apply Service for (device => config in host.vars.nvme) {
+    import "generic-service"
+    name = "NVMe drive '" + device + "' health status"
+
+    check_command = "_nvme"
+    
+    vars += config
+    vars.device = device
+
+    if (host.vars.client_endpoint) {
+        command_endpoint = host.vars.client_endpoint
+    }
+}
+
+
+#
+# Groups
+###############################################################################
+
+# Host group
+object HostGroup "nvme" {
+    display_name = "NVMe Hosts"
+    assign where "nvme" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "nvme" {
+  display_name = "NVMe Checks"
+
+  assign where match("_nvme", service.check_command)
+}

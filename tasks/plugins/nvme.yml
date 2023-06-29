@@ -1,0 +1,49 @@
+---
+- name: Check if the NVMe should be installed
+  block:
+    - name: Check if the plugin command is available
+      ansible.builtin.stat:
+        path: "{{ icinga2_dynamic_plugins_src_dir }}/check_nvme"
+      delegate_to: localhost
+      register: plugin_command
+      become: false
+
+- name: Install the NVMe check plugin
+  when: >
+    ansible_system == "Linux" and
+    plugin_command.stat.exists and
+    icinga2_client_vars.nvme is defined
+  block:
+    - name: Install plugin dependencies
+      ansible.builtin.package:
+        name: nvme-cli
+        state: present
+      when: ansible_os_family | lower in icinga2_apt_distros
+
+    - name: Copy the check_nvme plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_dynamic_plugins_src_dir }}/check_nvme"
+        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_nvme"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+        mode: '0750'
+
+    - name: Configure sudo
+      ansible.builtin.template:
+        src: sudoers.d/nvme.j2
+        dest: /etc/sudoers.d/icinga2-nvme
+        owner: root
+        group: root
+        mode: '0440'
+
+- name: Copy the services definition file
+  ansible.builtin.template:
+    src: plugins/nvme.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/nvme.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Reload Icinga2
+  when: >
+    icinga2_client_vars.nvme is defined
+    or ansible_fqdn == icinga2_master_inventory_hostname
