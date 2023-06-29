@@ -1,119 +1,71 @@
 ---
 ###############################################################################
-# Legacy plugins deploy (syncronize 'icinga2_plugins_src_dir' using rsync)
-# TODO: this has to be removed!
-
-- name: Get the username running the deploy
-  local_action: shell whoami
-  register: remote_username
-  vars:
-    ansible_become: no
-
-- name: Allow RSYNC for new super user without SUDO password
-  blockinfile:
-    path: /etc/sudoers.d/zzz-ansible-temp
-    state: present
-    create: yes
-    mode: 0440
-    marker: "\n# ----- {mark} ANSIBLE MANAGED BLOCK -----\n"
-    block: |
-
-      {{ remote_username.stdout }} ALL=NOPASSWD: /usr/bin/rsync
-      Defaults:{{ remote_username.stdout }}        !requiretty
-
-- name: Deploy Icinga Custom Plugins
-  synchronize:
-    src: "{{ icinga2_plugins_src_dir }}/"
-    dest: "{{ icinga2_plugins_dest_dir }}"
-    delete: yes
-    recursive: yes
-
-- name: Disallow RSYNC for new super user without SUDO password
-  file:
-    path: /etc/sudoers.d/zzz-ansible-temp
-    state: absent
-
-- name: Ensure that CustomPluginsDir constant is defined
-  lineinfile:
-    path: "{{ icinga2_config_root_dir }}/{{ icinga2_constants_config_file }}"
-    line: "const CustomPluginsDir = \"{{ icinga2_plugins_dest_dir }}\""
-    owner: "{{ icinga2_user }}"
-    group: "{{ icinga2_group }}"
-    mode: 0640
-
-- name: Deploy Icinga Default Plugins configuration file
-  template:
-    src: "templates/command-plugins.conf.j2"
-    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_custom_confd_dir }}/command-plugins.conf"
-    owner: "{{ icinga2_user }}"
-    group: "{{ icinga2_group }}"
-    mode: 0640
-
-- name: Deploy Icinga Custom Plugins configuration file
-  template:
-    src: "{{ item.src }}"
-    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_custom_confd_dir }}/{{ item.dest }}"
-    owner: "{{ icinga2_user }}"
-    group: "{{ icinga2_group }}"
-    mode: 0640
-  with_items: "{{ icinga2_plugins_command_files }}"
-  notify: Reload Icinga2
-
-- name: Deploy services configuration files
-  template:
-    src: "{{ item.src }}"
-    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/{{ item.dest }}"
-    owner: "{{ icinga2_user }}"
-    group: "{{ icinga2_group }}"
-    mode: 0640
-  with_items: "{{ icinga2_services_config_files }}"
-  notify: Reload Icinga2
-
-# Force reload handler on var=true
-- name: Force reload Icinga2
-  command: /bin/true
-  notify: Reload Icinga2
-  when: icinga2_force_reload == true
-
-
-
-###############################################################################
 # Dynamic plugins deploy (automatically managed through icinga2_client_vars)
 
 - name: Create the dynamic plugins destination directory
-  file:
+  ansible.builtin.file:
     path: "{{ icinga2_dynamic_plugins_dest_dir }}"
     state: directory
+    recurse: true
+    mode: '0750'
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
 
 ###############################################################################
 # Plugin list
 
+# Builtin plugins
+- name: Install Icinga builtin plugins
+  ansible.builtin.include_tasks: plugins/icinga-builtin.yml
+
+# Generic plugins
+- name: Install generic Linux plugins
+  ansible.builtin.include_tasks: plugins/generic-linux.yml
+
 # Harisekhon Plugins on master node
-- include_tasks: plugins/harisekhon.yml
+- name: Install Harisekhon plugins
+  ansible.builtin.include_tasks: plugins/harisekhon.yml
 
 # LinuxFabrik Monitoring Plugins
-- include_tasks: plugins/linuxfabrik.yml
+- name: Install LinuxFabrik Monitoring Plugins
+  ansible.builtin.include_tasks: plugins/linuxfabrik.yml
 
 # Mail plugins
-- include_tasks: plugins/mail.yml
+- name: Install mail plugin
+  ansible.builtin.include_tasks: plugins/mail.yml
 
 # MS SQL plugins
-- include_tasks: plugins/mssql.yml
+- name: Install MS SQL Server plugins
+  ansible.builtin.include_tasks: plugins/mssql.yml
 
 # NRPE plugins
-- include_tasks: plugins/nrpe.yml
+- name: Install NRPE plugins
+  ansible.builtin.include_tasks: plugins/nrpe.yml
+
+# NVMe plugins
+- name: Install NVMe plugins
+  ansible.builtin.include_tasks: plugins/nvme.yml
 
 # PostgreSQL plugins
-- include_tasks: plugins/postgres.yml
+- name: Install PostgreSQL plugins
+  ansible.builtin.include_tasks: plugins/postgres.yml
+
+# Proxmox VE plugins
+- name: Install Proxmox VE plugins
+  ansible.builtin.include_tasks: plugins/pve.yml
 
 # Samba AD plugins
-- include_tasks: plugins/samba_ad.yml
+- name: Install Samba Active Directory plugins
+  ansible.builtin.include_tasks: plugins/samba_ad.yml
 
 # SSSD plugins
-- include_tasks: plugins/sssd.yml
+- name: Install SSSD plugins
+  ansible.builtin.include_tasks: plugins/sssd.yml
 
 # Samba plugins
-- include_tasks: plugins/samba.yml
+- name: Install Samba plugins
+  ansible.builtin.include_tasks: plugins/samba.yml
 
 # ZFS plugins
-- include_tasks: plugins/zfs.yml
+- name: Install ZFS plugins
+  ansible.builtin.include_tasks: plugins/zfs.yml

@@ -42,3 +42,9 @@ icinga2_harisekhon_plugins_cmd: '"docker", "run", "--rm", "harisekhon/nagios-plu
 
 # Install Linuxfabrik Monitoring Plugins
 icinga2_plugins_linuxfabrik: true
+
+# Install icons
+icinga2_plugins_icons_install: false
+
+# Icingaweb2 icons destination directory
+icinga2_plugins_icons_dir_path: /usr/share/icingaweb2/public/img/icons/

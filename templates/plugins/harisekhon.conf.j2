@@ -309,7 +309,7 @@ apply Service for (service_name => service_config in host.vars.redis) {
 object CheckCommand "_hk_check_rabbitmq" {
         import "ipv4-or-ipv6"
         # command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_rabbitmq.py" ]
-        command = [ "{{ icinga2_dynamic_plugins_src_dir }}/harisekhon-rabbitmq_check-fix.sh" ]
+        command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/harisekhon-rabbitmq_check-fix.sh" ]
 
         arguments = {
                 "-H" = {

@@ -1,11 +1,26 @@
 ---
 - name: Install the Samba AD check plugin
   block:
-    - name: Install plugin dependencies
+    - name: Set package dependencies
+      set_fact:
+        _package_dependencies:
+          - python-dateutil
+      when:
+        - ansible_distribution == 'Debian'
+        - ansible_distribution_major_version == '10'
+
+    - name: Set package dependencies
+      set_fact:
+        _package_dependencies:
+          - python3-dateutil
+      when:
+        - ansible_distribution == 'Debian'
+        - ansible_distribution_major_version == '11'
+
+    - name: Install package dependencies
       apt:
-        name: python-dateutil
+        name: "{{ _package_dependencies }}"
         state: present
-      when: ansible_os_family | lower in icinga2_apt_distros
 
     - name: Copy the check_ad_replication plugin
       copy:

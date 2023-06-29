@@ -5,18 +5,944 @@
 # https://github.com/Linuxfabrik/monitoring-plugins
 ###############################################################################
 
-# About ME: assigned on every Linux host
-apply Service "About me" {
-  import "generic-service"
+# Service template
+template Service "linuxfabrik-service" {
+  check_interval = 1m
+  enable_notifications = false
+  max_check_attempts = 5
+  retry_interval = 30s
 
-  check_command = "_linuxfabrik_about_me"
-
-  assign where host.vars.os == "Linux" && host.vars.about_me_disabled
-
-  if (host.vars.client_endpoint && config.command_endpoint != "local") {
+  # These are all remote commands
+  if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+}
 
+# About ME
+# Assigned on every Linux host
+apply Service "About me" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_about_me"
   check_interval = 24h
   icon_image = "about-me.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# CPU Usage
+# Assigned on every Linux host
+apply Service "CPU Usage" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_cpu_usage"
+  icon_image = "cpu-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Disk IO
+# Assigned on every Linux host
+apply Service "Disk IO" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_disk_io"
+  icon_image = "disk-io.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Disk SMART
+# Assigned on every host with disk_smart_enabled=true
+apply Service "Disk SMART" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_disk_smart"
+  check_interval = 8h
+  icon_image = "disk-smart.png"
+
+  assign where host.vars.disk_smart_enabled
+}
+
+# Disk Usage
+# Assigned on every Linux host
+apply Service "Disk Usage" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_disk_usage"
+  check_interval = 5m
+  icon_image = "disk-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Dmesg errors
+# Assigned on every Linux host
+apply Service "Dmesg errors" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_dmesg"
+  icon_image = "dmesg.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# DNS Lookup
+# Assigned on every Linux host
+apply Service "DNS Lookup" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_dns"
+  check_interval = 15m
+  icon_image = "dns.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Docker Info
+# Assigned on every Linux host with host.vars.docker_installed
+apply Service "Docker Info" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_docker_info"
+  check_interval = 1d
+  icon_image = "docker-info.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.docker_installed
+}
+
+# Docker Stats
+# Assigned on every Linux host with host.vars.docker_installed=true
+apply Service "Docker Stats" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_docker_stats"
+  icon_image = "docker-stats.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.docker_installed
+}
+
+# Fail2ban
+# Assigned on every Linux host with host.vars.fail2ban
+apply Service "Fail2ban Banned IP Addresses" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_fail2ban"
+  icon_image = "fail2ban.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.fail2ban
+}
+
+# File Age
+# Assigned with 'file_age' host var
+apply Service for (service_name => service_config in host.vars.file_age) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_file_age"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "file-age.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# File Count
+# Assigned with 'file_count' host var
+apply Service for (service_name => service_config in host.vars.file_count) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_file-count"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "file-count.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# File Descriptors
+# Assigned on every Linux host
+apply Service "File Descriptors" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_file_descriptors"
+  icon_image = "file-descriptors.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# System File Ownership
+# Assigned on every Linux host
+apply Service "System File Ownership" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_file_ownership"
+  check_interval = 5m
+  icon_image = "file-ownership.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# File Ownership
+# Assigned with 'file_ownership' host var
+apply Service for (service_name => service_config in host.vars.file_ownership) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_file-ownership"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 5m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "file-ownership.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# File Size
+# Assigned with 'file_size' host var
+apply Service for (service_name => service_config in host.vars.file_size) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_file-size"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 15m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "file-size.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# FS Inodes
+# Assigned with 'fs_inodes' host var
+apply Service for (service_name => service_config in host.vars.fs_inodes) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_fs_inodes"
+  icon_image = "fs-inodes.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# FS Read Only
+# Assigned with 'fs_ro' host var
+apply Service for (service_name => service_config in host.vars.fs_ro) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_fs_ro"
+  check_interval = 15m
+  icon_image = "fs-ro.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Name Service Switch (NSS) libraries (getent)
+# Assigned on every Linux host
+apply Service "Name Service Switch (NSS) libraries (getent)" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_getent"
+  check_interval = 15m
+  icon_image = "getent.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# FS Read Only
+# Assigned with 'haproxy' host var
+apply Service for (service_name => service_config in host.vars.haproxy) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_haproxy_status"
+  icon_image = "haproxy-status.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# IPMI System Event Log (SEL)
+# Assigned with 'ipmi' host var when ipmi_sel_enabled=true
+apply Service for (service_name => service_config in host.vars.ipmi) {
+  import "linuxfabrik-service"
+  name = service_name + " - IPMI System Event Log (SEL)"
+
+  check_command = "_linuxfabrik_ipmi_sel"
+  check_interval = 15m
+  icon_image = "ipmi-sel.png"
+
+  vars += service_config
+
+  assign where service_config.ipmi_sel_enabled
+}
+
+# IPMI sensor information
+# Assigned with 'ipmi' host var when ipmi_sensor_enabled=true
+apply Service for (service_name => service_config in host.vars.ipmi) {
+  import "linuxfabrik-service"
+  name = service_name + " - IPMI Sensors"
+
+  check_command = "_linuxfabrik_ipmi_sensor"
+  check_interval = 15m
+  icon_image = "ipmi-sensor.png"
+
+  vars += service_config
+
+  assign where service_config.ipmi_sensor_enabled
+}
+
+# Systemd Journal
+# Assigned on every Linux host with host.vars.systemd=true
+apply Service "Systemd Journal Alerts" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_journald_query"
+  icon_image = "journald-query.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.systemd
+}
+
+# Systemd Journal Usage
+# Assigned on every Linux host with host.vars.systemd=true
+apply Service "Systemd Journal Usage" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_journald_usage"
+  icon_image = "journald-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.systemd
+}
+
+# Check json-values
+# Assigned with 'json' host var
+apply Service for (service_name => service_config in host.vars.json) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_json_values"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "json-values.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check kvm-vm
+# Assigned on every host with host.vars.libvirt
+apply Service "Libvirt Virtual Machines" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_kvm_vm"
+  check_interval = 15m
+  icon_image = "kvm-vm.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.libvirt
+}
+
+# Check LibreNMS Alerts
+# Assigned with 'librenms' host var with librenms_url and librenms_token
+apply Service for (service_name => service_config in host.vars.librenms) {
+  import "linuxfabrik-service"
+  name = service_name + " - LibreNMS Alerts"
+
+  check_command = "_linuxfabrik_librenms_alerts"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "librenms-alerts.png"
+  }
+
+  vars += service_config
+
+  assign where service_config.librenms_url && service_config.librenms_token
+}
+
+# Check LibreNMS Health
+# Assigned with 'librenms' host var with librenms_url and librenms_token
+apply Service for (service_name => service_config in host.vars.librenms) {
+  import "linuxfabrik-service"
+  name = service_name + " - LibreNMS Health"
+
+  check_command = "_linuxfabrik_librenms_health"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "librenms-health.png"
+  }
+
+  vars += service_config
+
+  assign where service_config.librenms_url && service_config.librenms_token
+}
+
+# Check LibreNMS Version
+# Assigned with 'librenms' host var with librenms_url and librenms_token
+apply Service for (service_name => service_config in host.vars.librenms) {
+  import "linuxfabrik-service"
+  name = service_name + " - LibreNMS Version"
+
+  check_command = "_linuxfabrik_librenms_version"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "librenms-version.png"
+  }
+
+  vars += service_config
+
+  assign where service_config.librenms_url && service_config.librenms_token
+}
+
+# Check load
+# Assigned on every Linux host
+apply Service "Load Average" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_load"
+  icon_image = "load.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Check logfile
+# Assigned with 'logfile' host var
+apply Service for (service_name => service_config in host.vars.logfile) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_logfile"
+  icon_image = "logfile.png"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check mailq
+# Assigned on every Linux host with host.vars.mailq=true
+apply Service "Mail Queue" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_mailq"
+  check_interval = 5m
+  icon_image = "mailq.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.mailq
+}
+
+# Memory Usage
+# Assigned on every Linux host
+apply Service "Memory Usage" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_memory_usage"
+  icon_image = "memory-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Needs Restarting
+# Assigned on every Linux host
+apply Service "System Needs Restarting" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_needs_restarting"
+  check_interval = 1d
+  icon_image = "needs-restarting.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Network Bonding
+# Assigned on every Linux host with host.vars.network_bonding=true
+apply Service "Network Bonding" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_network_bonding"
+  icon_image = "network-bonding.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.network_bonding
+}
+
+# Network Connections
+# Assigned on every Linux host
+apply Service "Network Connections" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_network_connections"
+  icon_image = "network-connections.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Network Port TCP
+# Assigned with 'network_port_tcp' host var
+apply Service for (service_name => service_config in host.vars.network_port_tcp) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_network_port_tcp"
+  icon_image = "network-port-tcp.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Nginx Status
+# Assigned with 'nginx' host var
+apply Service for (service_name => service_config in host.vars.nginx) {
+  import "linuxfabrik-service"
+  name = service_name + " - Nginx Status"
+
+  check_command = "_linuxfabrik_nginx_status"
+  icon_image = "nginx-status.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && service_config.nginx_stats_enabled
+}
+
+# Check ntp-chronyd
+# Assigned on every Linux host with host.vars.chronyd=true
+apply Service "NTP Chrony Daemon" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_ntp_chronyd"
+  icon_image = "ntp-chronyd.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.chronyd
+}
+
+# Check ntp-chronyd
+# Assigned on every Linux host with host.vars.ntpd=true
+apply Service "NTP Offset" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_ntp_ntpd"
+  icon_image = "ntp-ntpd.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.ntpd
+}
+
+# Check openvpn-client-list
+# Assigned with 'openvpn' host var and openvpn_client_list_filename variable
+apply Service for (service_name => service_config in host.vars.openvpn) {
+  import "linuxfabrik-service"
+  name = service_name + " - OpenVPN Cluient List"
+
+  check_command = "_linuxfabrik_openvpn_client_list"
+  icon_image = "openvpn-client-list.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && service_config.openvpn_client_list_filename
+}
+
+# Check path-rw-test
+# Assigned with 'path_rw_test' host var
+apply Service for (service_name => service_config in host.vars.path_rw_test) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_path_rw_test"
+  icon_image = "path-rw-test.png"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check ping
+# Assigned with 'ping' host var
+apply Service for (service_name => service_config in host.vars.ping) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_ping"
+  icon_image = "ping.png"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check PIP Updates
+# Assigned with 'pip_updates' host var
+apply Service for (service_name => service_config in host.vars.pip_updates) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_pip_updates"
+  icon_image = "pip-updates.png"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 7d
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check PIP Updates
+# Assigned with 'procs' host var
+apply Service for (service_name => service_config in host.vars.procs) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_procs"
+  icon_image = "procs.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check Redis Status
+# Assigned with 'redis' host var
+apply Service for (service_name => service_config in host.vars.redis) {
+  import "linuxfabrik-service"
+  name = service_name + " - Redis Status"
+
+  check_command = "_linuxfabrik_redis_status"
+  icon_image = "redis-status.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# RPM Last Activity
+# Assigned on every Linux host with host.vars.rpm=true
+apply Service "RPM Last Activity" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_rpm_lastactivity"
+  check_interval = 1d
+  icon_image = "rpm-lastactivity.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.rpm
+}
+
+# Sensors Battery
+# Assigned on every Linux host with host.vars.battery=true
+apply Service "Battery Status" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_sensors_battery"
+  icon_image = "sensors-battery.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.battery
+}
+
+# Sensors Fan
+# Assigned on every Linux host with host.vars.fans=true
+apply Service "Hardware Fans Speed" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_sensors_fans"
+  icon_image = "sensors-fans.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.fans
+}
+
+# Sensors Temperature
+# Assigned on every Linux host with host.vars.temperature=true
+apply Service "Hardware Temperature Sensors" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_sensors_temperature"
+  icon_image = "sensors-temperature.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.temperature
+}
+
+# Check Service
+# Assigned with 'service' host var
+apply Service for (service_name => service_config in host.vars.service) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_service"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "service.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check SNMP
+# Assigned with 'snmp' host var
+apply Service for (service_name => service_config in host.vars.snmp) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_snmp"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 5m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "snmp.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Swap Usage
+# Assigned on every Linux host with host.vars.swap=true
+apply Service "Swap Usage" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_swap_usage"
+  icon_image = "swap-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.swap
+}
+
+# Systemd Timedate Status
+# Assigned on every Linux host with host.vars.systemd=true
+apply Service "Systemd Timedate Status" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_systemd_timedate_status"
+  check_interval = 1d
+  icon_image = "systemd-timedate-status.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.systemd
+}
+
+# Check Systemd Unit
+# Assigned with 'systemd_unit' host var
+apply Service for (service_name => service_config in host.vars.systemd_unit) {
+  import "linuxfabrik-service"
+  name = service_name + " - Systemd Unit"
+
+  check_command = "_linuxfabrik_systemd_unit"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "systemd_unit.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Systemd Units Failed
+# Assigned on every Linux host with host.vars.systemd=true
+apply Service "Systemd Units Failed" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_systemd_units_failed"
+  icon_image = "systemd-units-failed.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.systemd
+}
+
+# Top 3 Processes Which Caused The Most IO
+# Assigned on every Linux host
+apply Service "Top 3 Processes Which Caused The Most IO" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_top3_processes_which_caused_the_most_io"
+  icon_image = "top3-processes-which-caused-the-most-io.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# System Uptime
+# Assigned on every Linux host and host.vars.linuxfabrik_uptime
+apply Service "System Uptime" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_uptime"
+  icon_image = "uptime.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.linuxfabrik_uptime
+}
+
+# Connected Users
+# Assigned on every Linux host
+apply Service "Connected Users" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_users"
+  icon_image = "users.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# XML
+# Assigned with 'xml' host var
+apply Service for (service_name => service_config in host.vars.xml) {
+  import "linuxfabrik-service"
+  name = service_name
+
+  check_command = "_linuxfabrik_xml"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "xml.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
 }

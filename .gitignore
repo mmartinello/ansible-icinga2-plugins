@@ -10,3 +10,5 @@
 *.pyc
 
 TODO.txt
+
+.vscode
