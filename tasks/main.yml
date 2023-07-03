@@ -1,4 +1,7 @@
 ---
+- name: Gather Operating System specific variables
+  ansible.builtin.include_vars: "{{ ansible_system }}.yml"
+
 - name: Gather Distribution specific variables
   ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
   vars:
@@ -13,7 +16,9 @@
         - vars
 
 # Install dependencies
-- import_tasks: install.yml
+- name: Install generic dependencies
+  ansible.builtin.import_tasks: install.yml
 
 # Install custom plugins
-- import_tasks: plugins.yml
+- name: Install plugins
+  ansible.builtin.import_tasks: plugins.yml

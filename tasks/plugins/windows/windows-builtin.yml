@@ -17,7 +17,7 @@
   block:
     - name: Check if the plugin files are available
       ansible.builtin.stat:
-        path: "{{ icinga2_win_plugins_src_dir }}/{{ item }}"
+        path: "{{ icinga2_plugins_src_dir }}/{{ item }}"
       delegate_to: localhost
       loop: "{{ _plugin_files }}"
       register: _plugin_files_exists
@@ -32,8 +32,8 @@
   block:
     - name: Copy plugin files
       ansible.windows.win_copy:
-        src: "{{ icinga2_win_plugins_src_dir }}/{{ item }}"
-        dest: "{{ icinga2_win_plugins_dest_dir }}/{{ item }}"
+        src: "{{ icinga2_plugins_src_dir }}/{{ item }}"
+        dest: "{{ icinga2_plugins_dest_dir }}/{{ item }}"
       loop: "{{ _plugin_files | default([]) }}"
       ignore_errors: true
       register: ignore_errors_register
@@ -41,5 +41,5 @@
 - name: Copy the services definition file
   ansible.windows.win_template:
     src: plugins/windows/windows-builtin.conf.j2
-    dest: "{{ icinga2_win_config_root_dir }}/{{ icinga2_services_dir }}/builtin.conf"
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/builtin.conf"
   notify: Restart Icinga2 on Windows

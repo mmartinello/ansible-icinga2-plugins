@@ -1,6 +1,8 @@
 ---
-- include_tasks: plugins-Linux.yml
+- name: Install plugins on Linux systems
+  ansible.builtin.include_tasks: plugins-Linux.yml
   when: ansible_system == "Linux"
 
-- include_tasks: plugins-Windows.yml
+- name: Install plugins on Windows systems
+  ansible.builtin.include_tasks: plugins-Windows.yml
   when: ansible_os_family == "Windows"
