@@ -1,0 +1,45 @@
+---
+- name: Set variables
+  block:
+    - name: Set plugin files
+      ansible.builtin.set_fact:
+        _plugin_files: []
+
+    - name: Set package dependencies
+      ansible.builtin.set_fact:
+        _package_dependencies: []
+
+    - name: Set icon files
+      ansible.builtin.set_fact:
+        _icons_list: []
+
+- name: Check if files are available
+  block:
+    - name: Check if the plugin files are available
+      ansible.builtin.stat:
+        path: "{{ icinga2_win_plugins_src_dir }}/{{ item }}"
+      delegate_to: localhost
+      loop: "{{ _plugin_files }}"
+      register: _plugin_files_exists
+      become: false
+
+    - name: Set var
+      ansible.builtin.set_fact:
+        _plugin_should_be_installed: true
+
+- name: Install plugins
+  when: _plugin_should_be_installed
+  block:
+    - name: Copy plugin files
+      ansible.windows.win_copy:
+        src: "{{ icinga2_win_plugins_src_dir }}/{{ item }}"
+        dest: "{{ icinga2_win_plugins_dest_dir }}/{{ item }}"
+      loop: "{{ _plugin_files | default([]) }}"
+      ignore_errors: true
+      register: ignore_errors_register
+
+- name: Copy the services definition file
+  ansible.windows.win_template:
+    src: plugins/windows/windows-builtin.conf.j2
+    dest: "{{ icinga2_win_config_root_dir }}/{{ icinga2_services_dir }}/builtin.conf"
+  notify: Restart Icinga2 on Windows

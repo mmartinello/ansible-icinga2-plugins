@@ -1,34 +1,7 @@
 ---
-- name: Ensure Icinga Custom Plugins directory exists
-  win_file:
-    path: "{{ icinga2_win_plugins_dest_dir }}"
-    state: directory
+###############################################################################
+# Windows plugin list
 
-- name: Deploy Icinga Custom Plugins
-  win_copy:
-    src: "{{ item }}"
-    dest: "{{ icinga2_win_plugins_dest_dir }}\\"
-  with_fileglob:
-    - "{{ icinga2_win_plugins_src_dir }}/*"
-
-- name: Ensure that CustomPluginsDir constant is defined
-  win_lineinfile:
-    path: '{{ icinga2_win_config_root_dir }}/{{ icinga2_constants_config_file }}'
-    regexp: '^(\/\/)?\s*const CustomPluginsDir = PrefixDir \+ "\/{{ icinga2_win_plugins_dest_dir_name }}"'
-    line: 'const CustomPluginsDir = PrefixDir + "/{{ icinga2_win_plugins_dest_dir_name }}"'
-  notify: Restart Icinga2 on Windows
-
-- name: Deploy Icinga Custom Plugins configuration file
-  win_template:
-    src: "{{ icinga2_win_plugins_conf_src_template }}"
-    dest: "{{ icinga2_win_config_root_dir }}/{{ icinga2_custom_confd_dir }}/custom-command-plugins-windows.conf"
-  notify: Restart Icinga2 on Windows
-
-# Disabled on Windows
-#- name: Deploy services configuration files
-#  win_template:
-#    src: "{{ item.src }}"
-#    dest: "{{ win_config_root_dir }}/{{ services_dir }}/{{ item.dest }}"
-#  with_items: "{{ services_config_files }}"
-#  notify: Restart Icinga2 on Windows
-#  tags: ['plugins']
+# Builtin plugins
+- name: Install Icinga builtin plugins
+  ansible.builtin.include_tasks: plugins/windows/windows-builtin.yml
