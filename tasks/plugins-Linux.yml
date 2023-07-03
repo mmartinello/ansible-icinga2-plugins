@@ -16,56 +16,56 @@
 
 # Builtin plugins
 - name: Install Icinga builtin plugins
-  ansible.builtin.include_tasks: plugins/icinga-builtin.yml
+  ansible.builtin.include_tasks: plugins/linux/icinga-builtin.yml
 
 # Generic plugins
 - name: Install generic Linux plugins
-  ansible.builtin.include_tasks: plugins/generic-linux.yml
+  ansible.builtin.include_tasks: plugins/linux/generic-linux.yml
 
 # Harisekhon Plugins on master node
 - name: Install Harisekhon plugins
-  ansible.builtin.include_tasks: plugins/harisekhon.yml
+  ansible.builtin.include_tasks: plugins/linux/harisekhon.yml
 
 # LinuxFabrik Monitoring Plugins
 - name: Install LinuxFabrik Monitoring Plugins
-  ansible.builtin.include_tasks: plugins/linuxfabrik.yml
+  ansible.builtin.include_tasks: plugins/linux/linuxfabrik.yml
 
 # Mail plugins
 - name: Install mail plugin
-  ansible.builtin.include_tasks: plugins/mail.yml
+  ansible.builtin.include_tasks: plugins/linux/mail.yml
 
 # MS SQL plugins
 - name: Install MS SQL Server plugins
-  ansible.builtin.include_tasks: plugins/mssql.yml
+  ansible.builtin.include_tasks: plugins/linux/mssql.yml
 
 # NRPE plugins
 - name: Install NRPE plugins
-  ansible.builtin.include_tasks: plugins/nrpe.yml
+  ansible.builtin.include_tasks: plugins/linux/nrpe.yml
 
 # NVMe plugins
 - name: Install NVMe plugins
-  ansible.builtin.include_tasks: plugins/nvme.yml
+  ansible.builtin.include_tasks: plugins/linux/nvme.yml
 
 # PostgreSQL plugins
 - name: Install PostgreSQL plugins
-  ansible.builtin.include_tasks: plugins/postgres.yml
+  ansible.builtin.include_tasks: plugins/linux/postgres.yml
 
 # Proxmox VE plugins
 - name: Install Proxmox VE plugins
-  ansible.builtin.include_tasks: plugins/pve.yml
+  ansible.builtin.include_tasks: plugins/linux/pve.yml
 
 # Samba AD plugins
 - name: Install Samba Active Directory plugins
-  ansible.builtin.include_tasks: plugins/samba_ad.yml
+  ansible.builtin.include_tasks: plugins/linux/samba_ad.yml
 
 # SSSD plugins
 - name: Install SSSD plugins
-  ansible.builtin.include_tasks: plugins/sssd.yml
+  ansible.builtin.include_tasks: plugins/linux/sssd.yml
 
 # Samba plugins
 - name: Install Samba plugins
-  ansible.builtin.include_tasks: plugins/samba.yml
+  ansible.builtin.include_tasks: plugins/linux/samba.yml
 
 # ZFS plugins
 - name: Install ZFS plugins
-  ansible.builtin.include_tasks: plugins/zfs.yml
+  ansible.builtin.include_tasks: plugins/linux/zfs.yml

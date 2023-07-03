@@ -3,27 +3,7 @@
   block:
     - name: Set plugin files
       ansible.builtin.set_fact:
-        _plugin_files:
-          - check_uptime
-          - check_memory
-          - check_mem.pl
-          - check_x224
-          - check_files.pl
-          - check_galera_cluster
-          - check_megaraid_sas
-          - check_zfs
-          - check_smart.zcu.pl
-          - check_mysql_query
-          - check_kopano.sh
-          - check_mountpoints.sh
-          - check_mysql_slavestatus.sh
-          - check_kernel.sh
-          - check_yum.py
-          - check_ice2
-          - check_udp_port
-          - check_cpu.py
-          - check_video.py
-          - check_journalctl.sh
+        _plugin_files: []
 
     - name: Set package dependencies
       ansible.builtin.set_fact:
@@ -81,8 +61,8 @@
 
 - name: Copy the services definition file
   ansible.builtin.template:
-    src: plugins/generic-linux.conf.j2
-    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/generic-linux.conf"
+    src: plugins/icinga-builtin.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/linux-builtin.conf"
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"
     mode: '0640'

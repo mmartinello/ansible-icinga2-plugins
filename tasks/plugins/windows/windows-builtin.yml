@@ -27,8 +27,8 @@
       ansible.builtin.set_fact:
         _plugin_should_be_installed: true
 
-- name: Install plugins
-  when: _plugin_should_be_installed
+- name: Install plugins on Windows
+  when: _plugin_should_be_installed and ansible_system == "Win32NT"
   block:
     - name: Copy plugin files
       ansible.windows.win_copy:
@@ -38,8 +38,39 @@
       ignore_errors: true
       register: ignore_errors_register
 
-- name: Copy the services definition file
+- name: Install plugins on Master server
+  when: _plugin_should_be_installed and ansible_system == "Linux" and ansible_fqdn == icinga2_master_inventory_hostname
+  block:
+    - name: Copy plugin files
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/{{ item }}"
+        dest: "{{ icinga2_plugins_dest_dir }}/{{ item }}"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+        mode: '0755'
+      loop: "{{ _plugin_files | default([]) }}"
+      ignore_errors: true
+      register: ignore_errors_register
+      vars:
+        icinga2_plugins_dest_dir: "{{ icinga2_plugins_dest_dir_on_master }}"
+
+- name: Copy the services definition file on Windows
   ansible.windows.win_template:
     src: plugins/windows/windows-builtin.conf.j2
-    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/builtin.conf"
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/windows-builtin.conf"
   notify: Restart Icinga2 on Windows
+  when: _plugin_should_be_installed and ansible_system == "Win32NT"
+
+- name: Copy the services definition file on Master server
+  ansible.builtin.template:
+    src: plugins/windows/windows-builtin.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/windows-builtin.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Restart Icinga2
+  when: _plugin_should_be_installed and ansible_system == "Linux" and ansible_fqdn == icinga2_master_inventory_hostname
+  vars:
+    icinga2_config_root_dir: /etc/icinga2
+    icinga2_user: nagios
+    icinga2_group: nagios
