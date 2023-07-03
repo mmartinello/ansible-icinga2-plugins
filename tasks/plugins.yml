@@ -5,4 +5,6 @@
 
 - name: Install plugins on Windows systems
   ansible.builtin.include_tasks: plugins-Windows.yml
-  when: ansible_os_family == "Windows"
+  when: >
+    ansible_os_family == "Windows"
+    or ansible_fqdn == icinga2_master_inventory_hostname
