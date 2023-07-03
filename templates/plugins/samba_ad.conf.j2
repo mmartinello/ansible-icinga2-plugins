@@ -9,7 +9,7 @@ Commands and services for Samba checks:
 object CheckCommand "_samba_ad_replication" {
         import "ipv4-or-ipv6"
 
-        command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_ad_replication.py" ]
+        command = [ "sudo", "{{ icinga2_plugins_dest_dir }}/check_ad_replication.py" ]
 
         arguments = {
                 "-v" = {

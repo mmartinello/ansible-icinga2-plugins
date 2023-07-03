@@ -9,8 +9,8 @@
 
     - name: Copy the check_postgres plugin
       copy:
-        src: "{{ icinga2_dynamic_plugins_src_dir }}/check_postgres.pl"
-        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_postgres.pl"
+        src: "{{ icinga2_plugins_src_dir }}/check_postgres.pl"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_postgres.pl"
         mode: 0750
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"

@@ -1,10 +1,10 @@
 ---
 ###############################################################################
-# Dynamic plugins deploy (automatically managed through icinga2_client_vars)
+# Plugins deploy
 
-- name: Create the dynamic plugins destination directory
+- name: Create the plugins destination directory
   ansible.builtin.file:
-    path: "{{ icinga2_dynamic_plugins_dest_dir }}"
+    path: "{{ icinga2_plugins_dest_dir }}"
     state: directory
     recurse: true
     mode: '0750'

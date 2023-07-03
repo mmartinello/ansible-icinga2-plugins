@@ -14,7 +14,7 @@ Commands and services for NVMe checks:
 object CheckCommand "_nvme" {
     import "ipv4-or-ipv6"
 
-    command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_nvme" ]
+    command = [ "sudo", "{{ icinga2_plugins_dest_dir }}/check_nvme" ]
 
     arguments = {
         "-d" = {

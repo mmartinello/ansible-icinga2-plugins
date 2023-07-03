@@ -9,7 +9,7 @@ Commands and services for SSSD checks:
 object CheckCommand "_sssd_backend_status" {
     import "ipv4-or-ipv6"
 
-    command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_sssd_backend_status" ]
+    command = [ "sudo", "{{ icinga2_plugins_dest_dir }}/check_sssd_backend_status" ]
 
     arguments = {
         "--debug" = {

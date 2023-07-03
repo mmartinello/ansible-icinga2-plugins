@@ -9,7 +9,7 @@ Commands and services for Samba checks:
 object CheckCommand "_samba_share_status" {
         import "ipv4-or-ipv6"
 
-        command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_smb_share_status.pl" ]
+        command = [ "{{ icinga2_plugins_dest_dir }}/check_smb_share_status.pl" ]
 
         arguments = {
                 "-u" = {

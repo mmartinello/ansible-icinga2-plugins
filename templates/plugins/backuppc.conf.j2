@@ -2,7 +2,7 @@
 # check_backuppc: TODO
 
 object CheckCommand "_check_backuppc" {
-    command = [ "sudo", "-u", "backuppc", "{{ icinga2_dynamic_plugins_dest_dir }}/check_backuppc/check_backuppc" ]
+    command = [ "sudo", "-u", "backuppc", "{{ icinga2_plugins_dest_dir }}/check_backuppc/check_backuppc" ]
 
     arguments = {
         "-H" = {

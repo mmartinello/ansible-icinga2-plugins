@@ -3,7 +3,7 @@
   block:
     - name: Check if the plugin command is available
       ansible.builtin.stat:
-        path: "{{ icinga2_dynamic_plugins_src_dir }}/check_nvme"
+        path: "{{ icinga2_plugins_src_dir }}/check_nvme"
       delegate_to: localhost
       register: plugin_command
       become: false
@@ -22,8 +22,8 @@
 
     - name: Copy the check_nvme plugin
       ansible.builtin.copy:
-        src: "{{ icinga2_dynamic_plugins_src_dir }}/check_nvme"
-        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_nvme"
+        src: "{{ icinga2_plugins_src_dir }}/check_nvme"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_nvme"
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"
         mode: '0750'

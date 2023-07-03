@@ -2,7 +2,7 @@
 # System uptime
 
 object CheckCommand "_uptime" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_uptime" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_uptime" ]
 
     arguments = {
         "-w" = {
@@ -50,7 +50,7 @@ object CheckCommand "_memory" {
 }
 
 object CheckCommand "_check_mem" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_mem.pl" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_mem.pl" ]
 
     arguments = {
         "-u" = {
@@ -104,7 +104,7 @@ apply Service "System Memory" {
 object CheckCommand "_check_rdp" {
     import "ipv4-or-ipv6"
 
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_x224" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_x224" ]
 
     arguments = {
         "-H" = {
@@ -120,7 +120,7 @@ object CheckCommand "_check_rdp" {
 # Check files: assigned through 'check_files' host var
 
 object CheckCommand "_check_files" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_files.pl" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_files.pl" ]
 
     arguments = {
         "-F" = {
@@ -186,7 +186,7 @@ apply Service for (files => config in host.vars.check_files) {
 object CheckCommand "_check_galera_cluster" {
     import "ipv4-or-ipv6"
 
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_galera_cluster" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_galera_cluster" ]
 
     arguments = {
         "-H" = {
@@ -230,7 +230,7 @@ object CheckCommand "_check_galera_cluster" {
 # check_megaraid_sas: TODO
 
 object CheckCommand "_check_megaraid_sas" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_megaraid_sas" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_megaraid_sas" ]
 
     arguments = {
         "-b" = {
@@ -286,14 +286,14 @@ object CheckCommand "_check_megaraid_sas" {
 # check_zfs: TODO
 
 object CheckCommand "_check_zfs" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_zfs" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_zfs" ]
 }
 
 ###############################################################################
 # Drive SMART: assigned through 'smart' host var
 
 object CheckCommand "_check_smart" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_smart.zcu.pl" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_smart.zcu.pl" ]
 
     arguments = {
         "-d" = {
@@ -348,7 +348,7 @@ apply Service for (smart => config in host.vars.smart) {
 # check_mysql_query: TODO
 
 object CheckCommand "_check_mysql_query" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/advanced-nagios-plugins" + "/check_mysql_query.pl" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/advanced-nagios-plugins" + "/check_mysql_query.pl" ]
 
     arguments = {
         "-H" = {
@@ -442,7 +442,7 @@ object CheckCommand "_check_mysql_query" {
 # check_kopano: TODO
 
 object CheckCommand "_check_kopano" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_kopano.sh" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_kopano.sh" ]
 
     arguments = {
         "--param" = {
@@ -464,7 +464,7 @@ object CheckCommand "_check_kopano" {
 # Mount points: assigned through 'check_mountpoints' host var
 
 object CheckCommand "_check_mountpoints" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_mountpoints.sh" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_mountpoints.sh" ]
 
     arguments = {
         "--mountpoint" = {
@@ -552,7 +552,7 @@ apply Service "Mount Points" {
 
 object CheckCommand "_check_mysql_slavestatus" {
     import "ipv4-or-ipv6"
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_mysql_slavestatus.sh" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_mysql_slavestatus.sh" ]
 
     arguments = {
         "-H" = {
@@ -599,7 +599,7 @@ apply Service for (mysql_slave => config in host.vars.mysql_slave) {
 # Running kernel
 
 object CheckCommand "_check_kernel" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_kernel.sh" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_kernel.sh" ]
 }
 
 apply Service "Running Kernel" {
@@ -620,7 +620,7 @@ apply Service "Running Kernel" {
 # YUM updates: assigned on CentOS, Redhat Enterprise and Sangoma hosts
 
 object CheckCommand "_check_yum" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_yum.py" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_yum.py" ]
 
     arguments = {
         "-A" = {
@@ -689,7 +689,7 @@ apply Service "YUM Packages Updates" {
 object CheckCommand "_icecast2" {
     import "ipv4-or-ipv6"
 
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_ice2" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_ice2" ]
 
     arguments = {
         "-H" = {
@@ -771,7 +771,7 @@ apply Service for (openvpn => config in host.vars.openvpn) {
 object CheckCommand "_udp_port" {
     import "ipv4-or-ipv6"
 
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_udp_port" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_udp_port" ]
 
     arguments = {
         "-H" = {
@@ -795,7 +795,7 @@ object CheckCommand "_udp_port" {
 # CPU Usage: assigned on Linux hosts
 
 object CheckCommand "_check_cpu" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_cpu.py" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_cpu.py" ]
 
     arguments = {
         "-w" = {
@@ -869,7 +869,7 @@ apply Service "CPU usage" {
 # Video: assigned through 'video' host var
 
 object CheckCommand "_check_video" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_video.py" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_video.py" ]
 
     arguments = {
         "-r" = {
@@ -905,7 +905,7 @@ apply Service for (video => config in host.vars.video) {
 # OCR4Linux: assigned through 'ocr4linux' host var
 
 object CheckCommand "_check_ocr4linux" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_ocr4linux" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_ocr4linux" ]
 
     arguments = {
         "-s" = {
@@ -945,7 +945,7 @@ apply Service for (ocr4linux => config in host.vars.ocr4linux) {
 # Journalctl: assigned through 'journalctl' host var
 
 object CheckCommand "_check_journalctl" {
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_journalctl.sh" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_journalctl.sh" ]
 
     arguments = {
         "--service" = {

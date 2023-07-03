@@ -14,7 +14,7 @@ Commands and services for PVE checks:
 object CheckCommand "_check_pve" {
     import "ipv4-or-ipv6"
 
-    command = [ "{{ icinga2_dynamic_plugins_dest_dir }}/check_pve.rb" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_pve.rb" ]
 
     arguments = {
         "--mode" = {

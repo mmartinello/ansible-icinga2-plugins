@@ -14,8 +14,8 @@ icinga2_yum_distros:
 icinga2_plugins_dependencies: []
 
 # Icinga2 plugins
-icinga2_dynamic_plugins_src_dir: 'files/icinga2-plugins/linux'
-icinga2_dynamic_plugins_dest_dir: '/opt/icinga2-plugins'
+icinga2_plugins_src_dir: 'files/icinga2-plugins/linux'
+icinga2_plugins_dest_dir: '/opt/icinga2-plugins'
 
 # Icinga2 Configuration
 icinga2_user: nagios

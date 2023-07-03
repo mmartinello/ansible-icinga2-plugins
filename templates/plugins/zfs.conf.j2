@@ -14,7 +14,7 @@ Commands and services for ZFS checks:
 object CheckCommand "_zfs_pool" {
     import "ipv4-or-ipv6"
 
-    command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_zfs.py" ]
+    command = [ "sudo", "{{ icinga2_plugins_dest_dir }}/check_zfs.py" ]
 
     arguments = {
         "--pool" = {
@@ -45,7 +45,7 @@ object CheckCommand "_zfs_pool" {
 object CheckCommand "_zfs_zpool_scrub" {
     import "ipv4-or-ipv6"
 
-    command = [ "sudo", "{{ icinga2_dynamic_plugins_dest_dir }}/check_zpool_scrub" ]
+    command = [ "sudo", "{{ icinga2_plugins_dest_dir }}/check_zpool_scrub" ]
 
     arguments = {
         "--critical" = {

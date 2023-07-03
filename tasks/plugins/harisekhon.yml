@@ -21,7 +21,7 @@
     - name: Deploy fix for RabbitMQ check plugin
       ansible.builtin.template:
         src: templates/plugins/harisekhon-rabbitmq_check-fix.sh.j2
-        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/harisekhon-rabbitmq_check-fix.sh"
+        dest: "{{ icinga2_plugins_dest_dir }}/harisekhon-rabbitmq_check-fix.sh"
         mode: "0750"
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"

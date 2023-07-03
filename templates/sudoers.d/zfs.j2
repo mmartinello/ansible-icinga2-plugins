@@ -1,4 +1,4 @@
 # {{ ansible_managed }}
 
-{{ icinga2_user }}    ALL=(ALL)    NOPASSWD:{{ icinga2_dynamic_plugins_dest_dir }}/check_zfs.py
-{{ icinga2_user }}    ALL=(ALL)    NOPASSWD:{{ icinga2_dynamic_plugins_dest_dir }}/check_zpool_scrub
+{{ icinga2_user }}    ALL=(ALL)    NOPASSWD:{{ icinga2_plugins_dest_dir }}/check_zfs.py
+{{ icinga2_user }}    ALL=(ALL)    NOPASSWD:{{ icinga2_plugins_dest_dir }}/check_zpool_scrub

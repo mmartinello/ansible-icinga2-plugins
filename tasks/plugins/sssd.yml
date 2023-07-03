@@ -9,8 +9,8 @@
 
     - name: Copy the check_ad_replication plugin
       copy:
-        src: "{{ icinga2_dynamic_plugins_src_dir }}/check_sssd_backend_status"
-        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/check_sssd_backend_status"
+        src: "{{ icinga2_plugins_src_dir }}/check_sssd_backend_status"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_sssd_backend_status"
         mode: 0750
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"

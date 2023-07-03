@@ -37,7 +37,7 @@
   block:
     - name: Check if the plugin files are available
       ansible.builtin.stat:
-        path: "{{ icinga2_dynamic_plugins_src_dir }}/{{ item }}"
+        path: "{{ icinga2_plugins_src_dir }}/{{ item }}"
       delegate_to: localhost
       loop: "{{ _plugin_files }}"
       register: _plugin_files_exists
@@ -58,8 +58,8 @@
 
     - name: Copy plugin files
       ansible.builtin.copy:
-        src: "{{ icinga2_dynamic_plugins_src_dir }}/{{ item }}"
-        dest: "{{ icinga2_dynamic_plugins_dest_dir }}/{{ item }}"
+        src: "{{ icinga2_plugins_src_dir }}/{{ item }}"
+        dest: "{{ icinga2_plugins_dest_dir }}/{{ item }}"
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"
         mode: '0750'
