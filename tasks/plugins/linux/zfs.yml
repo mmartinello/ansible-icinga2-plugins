@@ -26,7 +26,7 @@
 
     - name: Copy the services definition file
       template:
-        src: plugins/zfs.conf.j2
+        src: plugins/linux/zfs.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/zfs.conf"
       notify: Reload Icinga2
   when: >

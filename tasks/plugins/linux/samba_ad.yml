@@ -2,7 +2,7 @@
 - name: Install the Samba AD check plugin
   block:
     - name: Set package dependencies
-      set_fact:
+      ansible.builtin.set_fact:
         _package_dependencies:
           - python-dateutil
       when:
@@ -10,7 +10,7 @@
         - ansible_distribution_major_version == '10'
 
     - name: Set package dependencies
-      set_fact:
+      ansible.builtin.set_fact:
         _package_dependencies:
           - python3-dateutil
       when:
@@ -18,27 +18,27 @@
         - ansible_distribution_major_version == '11'
 
     - name: Install package dependencies
-      apt:
+      ansible.builtin.apt:
         name: "{{ _package_dependencies }}"
         state: present
 
     - name: Copy the check_ad_replication plugin
-      copy:
+      ansible.builtin.copy:
         src: "{{ icinga2_plugins_src_dir }}/check_ad_replication.py"
         dest: "{{ icinga2_plugins_dest_dir }}/check_ad_replication.py"
-        mode: 0750
+        mode: '0750'
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"
       ignore_errors: true
 
     - name: Configure sudo
-      template:
+      ansible.builtin.template:
         src: sudoers.d/samba_ad.j2
         dest: /etc/sudoers.d/icinga2-samba_ad
 
     - name: Copy the services definition file
-      template:
-        src: plugins/samba_ad.conf.j2
+      ansible.builtin.template:
+        src: plugins/linux/samba_ad.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/samba_ad.conf"
       notify: Reload Icinga2
   when: >

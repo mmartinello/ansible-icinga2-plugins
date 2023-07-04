@@ -2,23 +2,23 @@
 - name: Install the PostgreSQL check plugin
   block:
     - name: Install plugin dependencies
-      apt:
+      ansible.builtin.apt:
         name: postgresql-client
         state: present
       when: ansible_os_family | lower in icinga2_apt_distros
 
     - name: Copy the check_postgres plugin
-      copy:
+      ansible.builtin.copy:
         src: "{{ icinga2_plugins_src_dir }}/check_postgres.pl"
         dest: "{{ icinga2_plugins_dest_dir }}/check_postgres.pl"
-        mode: 0750
+        mode: '0750'
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"
       ignore_errors: true
 
     - name: Copy the services definition file
-      template:
-        src: plugins/postgres.conf.j2
+      ansible.builtin.template:
+        src: plugins/linux/postgres.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/postgres.conf"
       notify: Reload Icinga2
   when: >

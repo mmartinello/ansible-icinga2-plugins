@@ -3,7 +3,3 @@
 icinga2_user: nagios
 icinga2_group: nagios
 icinga2_config_root_dir: '/etc/icinga2'
-
-# Icinga2 plugins
-icinga2_plugins_src_dir: 'files/icinga2-plugins/linux'
-icinga2_plugins_dest_dir: '/opt/icinga2-plugins'

@@ -3,7 +3,3 @@
 icinga2_user: nagios
 icinga2_group: nagios
 icinga2_config_root_dir: 'C:\ProgramData\icinga2\etc\icinga2'
-
-# Icinga2 plugins
-icinga2_plugins_src_dir: 'files/icinga2-plugins/windows'
-icinga2_plugins_dest_dir: 'C:\Program Files\ICINGA2\custom-plugins'

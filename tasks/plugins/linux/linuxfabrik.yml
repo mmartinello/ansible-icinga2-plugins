@@ -16,7 +16,7 @@
 
     - name: Deploy Linuxfabrik Monitoring Plugins Commands Configuration File
       ansible.builtin.template:
-        src: "templates/plugins/linuxfabrik.conf.j2"
+        src: "templates/plugins/linux/linuxfabrik.conf.j2"
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/linuxfabrik-services.conf"
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"

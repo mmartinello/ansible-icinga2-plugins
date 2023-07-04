@@ -12,7 +12,7 @@
   block:
     - name: Copy the services definition file
       ansible.builtin.template:
-        src: plugins/mail.conf.j2
+        src: plugins/linux/mail.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mail.conf"
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"

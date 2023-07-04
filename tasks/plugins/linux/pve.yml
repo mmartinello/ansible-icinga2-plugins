@@ -72,7 +72,7 @@
 
 - name: Copy the services definition file
   ansible.builtin.template:
-    src: plugins/pve.conf.j2
+    src: plugins/linux/pve.conf.j2
     dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/pve.conf"
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"

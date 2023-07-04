@@ -17,6 +17,8 @@ icinga2_plugins_dependencies: []
 icinga2_plugins_src_dir: files/icinga2-plugins/linux
 icinga2_plugins_dest_dir: /opt/icinga2-plugins
 icinga2_plugins_dest_dir_on_master: /opt/icinga2-plugins
+icinga2_plugins_win_src_dir: files/icinga2/plugins-files/windows
+icinga2_plugins_win_dest_dir: 'C:\Program Files\ICINGA2\custom-plugins'
 
 # Icinga2 Configuration
 icinga2_user: nagios

@@ -80,6 +80,12 @@ apply Service for (service_win_service => config in host.vars.win_services) {
 
 apply Service "Remote Desktop" {
   import "generic-service"
-  check_command = "_check_rdp"
+  check_command = "tcp"
   assign where host.vars.os == "Windows"
+
+  if (host.vars.rdp_port) {
+    vars.tcp_port = host.vars.rdp_port
+  } else {
+    vars.tcp_port = 3389
+  }
 }

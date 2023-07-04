@@ -32,8 +32,8 @@
   block:
     - name: Copy plugin files
       ansible.windows.win_copy:
-        src: "{{ icinga2_plugins_src_dir }}/{{ item }}"
-        dest: "{{ icinga2_plugins_dest_dir }}/{{ item }}"
+        src: "{{ icinga2_plugins_win_src_dir }}/{{ item }}"
+        dest: "{{ icinga2_plugins_win_dest_dir }}/{{ item }}"
       loop: "{{ _plugin_files | default([]) }}"
       ignore_errors: true
       register: ignore_errors_register
@@ -43,7 +43,7 @@
   block:
     - name: Copy plugin files
       ansible.builtin.copy:
-        src: "{{ icinga2_plugins_src_dir }}/{{ item }}"
+        src: "{{ icinga2_plugins_win_src_dir }}/{{ item }}"
         dest: "{{ icinga2_plugins_dest_dir }}/{{ item }}"
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"

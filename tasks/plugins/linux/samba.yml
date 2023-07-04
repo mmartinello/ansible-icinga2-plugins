@@ -18,7 +18,7 @@
 
     - name: Copy the services definition file
       template:
-        src: plugins/samba.conf.j2
+        src: plugins/linux/samba.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/samba_share.conf"
       notify: Reload Icinga2
   when: >

@@ -20,7 +20,7 @@
 
     - name: Deploy fix for RabbitMQ check plugin
       ansible.builtin.template:
-        src: templates/plugins/harisekhon-rabbitmq_check-fix.sh.j2
+        src: templates/plugins/linux/harisekhon-rabbitmq_check-fix.sh.j2
         dest: "{{ icinga2_plugins_dest_dir }}/harisekhon-rabbitmq_check-fix.sh"
         mode: "0750"
         owner: "{{ icinga2_user }}"
@@ -28,7 +28,7 @@
 
     - name: Deploy Harisekhon Plugins Commands Configuration File
       ansible.builtin.template:
-        src: "templates/plugins/harisekhon.conf.j2"
+        src: "templates/plugins/linux/harisekhon.conf.j2"
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/harisekhon.conf"
         mode: "0644"
         owner: "{{ icinga2_user }}"

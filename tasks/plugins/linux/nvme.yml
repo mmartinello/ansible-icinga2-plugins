@@ -38,7 +38,7 @@
 
 - name: Copy the services definition file
   ansible.builtin.template:
-    src: plugins/nvme.conf.j2
+    src: plugins/linux/nvme.conf.j2
     dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/nvme.conf"
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"

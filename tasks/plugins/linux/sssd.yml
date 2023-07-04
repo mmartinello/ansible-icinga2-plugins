@@ -23,7 +23,7 @@
 
     - name: Copy the services definition file
       template:
-        src: plugins/sssd.conf.j2
+        src: plugins/linux/sssd.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/sssd.conf"
       notify: Reload Icinga2
   when: >
