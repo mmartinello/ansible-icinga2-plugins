@@ -1,0 +1,547 @@
+# {{ ansible_managed }}
+
+###############################################################################
+# Services from Linuxfabrik Monitoring Plugins Collection
+# Windows version
+# https://github.com/Linuxfabrik/monitoring-plugins
+###############################################################################
+
+# Service template
+template Service "win-linuxfabrik-service" {
+  check_interval = 1m
+  enable_notifications = false
+  max_check_attempts = 5
+  retry_interval = 30s
+
+  # These are all remote commands
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}
+
+# CPU Usage
+# Assigned on every Windows host
+apply Service "CPU Usage" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_cpu_usage"
+  icon_image = "cpu-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+}
+
+# Disk IO
+# Assigned on every Windows host
+apply Service "Disk IO" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_disk_io"
+  icon_image = "disk-io.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+}
+
+# Disk SMART
+# Assigned on every host with disk_smart_enabled=true
+apply Service "Disk SMART" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_disk_smart"
+  check_interval = 8h
+  icon_image = "disk-smart.png"
+
+  assign where host.vars.disk_smart_enabled
+}
+
+# Disk Usage
+# Assigned on every Windows host
+apply Service "Disk Usage" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_disk_usage"
+  check_interval = 5m
+  icon_image = "disk-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+}
+
+# DNS Lookup
+# Assigned on every Windows host
+apply Service "DNS Lookup" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_dns"
+  check_interval = 15m
+  icon_image = "dns.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+}
+
+# File Age
+# Assigned with 'file_age' host var
+apply Service for (service_name => service_config in host.vars.file_age) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_file_age"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "file-age.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# File Count
+# Assigned with 'file_count' host var
+apply Service for (service_name => service_config in host.vars.file_count) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_file_count"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "file-count.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# File Size
+# Assigned with 'file_size' host var
+apply Service for (service_name => service_config in host.vars.file_size) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_file_size"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 15m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "file-size.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# HAProxy Status
+# Assigned with 'haproxy' host var
+apply Service for (service_name => service_config in host.vars.haproxy) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_haproxy_status"
+  icon_image = "haproxy-status.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check json-values
+# Assigned with 'json' host var
+apply Service for (service_name => service_config in host.vars.json) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_json_values"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "json-values.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check LibreNMS Alerts
+# Assigned with 'librenms' host var with librenms_url and librenms_token
+apply Service for (service_name => service_config in host.vars.librenms) {
+  import "win-linuxfabrik-service"
+  name = service_name + " - LibreNMS Alerts"
+
+  check_command = "_win_linuxfabrik_librenms_alerts"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "librenms-alerts.png"
+  }
+
+  vars += service_config
+
+  assign where service_config.librenms_url && service_config.librenms_token
+}
+
+# Check LibreNMS Health
+# Assigned with 'librenms' host var with librenms_url and librenms_token
+apply Service for (service_name => service_config in host.vars.librenms) {
+  import "win-linuxfabrik-service"
+  name = service_name + " - LibreNMS Health"
+
+  check_command = "_win_linuxfabrik_librenms_health"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "librenms-health.png"
+  }
+
+  vars += service_config
+
+  assign where service_config.librenms_url && service_config.librenms_token
+}
+
+# Check LibreNMS Version
+# Assigned with 'librenms' host var with librenms_url and librenms_token
+apply Service for (service_name => service_config in host.vars.librenms) {
+  import "win-linuxfabrik-service"
+  name = service_name + " - LibreNMS Version"
+
+  check_command = "_win_linuxfabrik_librenms_version"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "librenms-version.png"
+  }
+
+  vars += service_config
+
+  assign where service_config.librenms_url && service_config.librenms_token
+}
+
+# Check logfile
+# Assigned with 'logfile' host var
+apply Service for (service_name => service_config in host.vars.logfile) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_logfile"
+  icon_image = "logfile.png"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Memory Usage
+# Assigned on every Windows host
+apply Service "Memory Usage" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_memory_usage"
+  icon_image = "memory-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+}
+
+# Network Connections
+# Assigned on every Windows host
+apply Service "Network Connections" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_network_connections"
+  icon_image = "network-connections.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+}
+
+# Network Port TCP
+# Assigned with 'network_port_tcp' host var
+apply Service for (service_name => service_config in host.vars.network_port_tcp) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_network_port_tcp"
+  icon_image = "network-port-tcp.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Nginx Status
+# Assigned with 'nginx' host var
+apply Service for (service_name => service_config in host.vars.nginx) {
+  import "win-linuxfabrik-service"
+  name = service_name + " - Nginx Status"
+
+  check_command = "_win_linuxfabrik_nginx_status"
+  icon_image = "nginx-status.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && service_config.nginx_stats_enabled
+}
+
+# Check path-rw-test
+# Assigned with 'path_rw_test' host var
+apply Service for (service_name => service_config in host.vars.path_rw_test) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_path_rw_test"
+  icon_image = "path-rw-test.png"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check PIP Updates
+# Assigned with 'pip_updates' host var
+apply Service for (service_name => service_config in host.vars.pip_updates) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_pip_updates"
+  icon_image = "pip-updates.png"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 7d
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check Procs
+# Assigned with 'procs' host var
+apply Service for (service_name => service_config in host.vars.procs) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_procs"
+  icon_image = "procs.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Scheduled Task
+# Assigned with 'scheduled_task' host var
+apply Service for (service_name => service_config in host.vars.scheduled_task) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_scheduled_task"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "scheduled_task.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Check Service
+# Assigned with 'service' host var
+apply Service for (service_name => service_config in host.vars.service) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_service"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "service.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Swap Usage
+# Assigned on every Windows host with host.vars.swap=true
+apply Service "Swap Usage" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_swap_usage"
+  icon_image = "swap-usage.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows" && host.vars.swap
+}
+
+# Top 3 Processes Which Caused The Most IO
+# Assigned on every Windows host
+apply Service "Top 3 Processes Which Caused The Most IO" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_top3_processes_which_caused_the_most_io"
+  icon_image = "top3-processes-which-caused-the-most-io.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+}
+
+# System Updates
+# Assigned on every Windows host and host.vars.linuxfabrik_uptime
+apply Service "System Uptime" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_updates"
+  icon_image = "updates.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows" && host.vars.linuxfabrik_updates
+}
+
+# System Uptime
+# Assigned on every Windows host and host.vars.linuxfabrik_uptime
+apply Service "System Uptime" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_uptime"
+  icon_image = "uptime.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows" && host.vars.linuxfabrik_uptime
+}
+
+# Connected Users
+# Assigned on every Windows host
+apply Service "Connected Users" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_users"
+  icon_image = "users.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+}
+
+# Veeam Status
+# Assigned on every Windows host and host.vars.veeam_status
+apply Service "Connected Users" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_veeam_status"
+  icon_image = "veeam_status.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows" && host.vars.veeam_status
+}
+
+# XML
+# Assigned with 'xml' host var
+apply Service for (service_name => service_config in host.vars.xml) {
+  import "win-linuxfabrik-service"
+  name = service_name
+
+  check_command = "_win_linuxfabrik_xml"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1m
+  }
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "xml.png"
+  }
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+}
