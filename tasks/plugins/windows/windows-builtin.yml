@@ -38,22 +38,6 @@
       ignore_errors: true
       register: ignore_errors_register
 
-- name: Install plugins on Master server
-  when: _plugin_should_be_installed and ansible_system == "Linux" and ansible_fqdn == icinga2_master_inventory_hostname
-  block:
-    - name: Copy plugin files
-      ansible.builtin.copy:
-        src: "{{ icinga2_plugins_win_src_dir }}/{{ item }}"
-        dest: "{{ icinga2_plugins_dest_dir }}/{{ item }}"
-        owner: "{{ icinga2_user }}"
-        group: "{{ icinga2_group }}"
-        mode: '0755'
-      loop: "{{ _plugin_files | default([]) }}"
-      ignore_errors: true
-      register: ignore_errors_register
-      vars:
-        icinga2_plugins_dest_dir: "{{ icinga2_plugins_dest_dir_on_master }}"
-
 - name: Copy the services definition file on Windows
   ansible.windows.win_template:
     src: plugins/windows/windows-builtin.conf.j2

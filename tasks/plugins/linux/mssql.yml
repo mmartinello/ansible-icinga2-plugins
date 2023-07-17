@@ -1,5 +1,8 @@
 ---
 - name: Install the MSSQL check plugin
+  when: >
+    icinga2_client_vars.mssql is defined
+    or ansible_fqdn == icinga2_master_inventory_hostname
   block:
     - name: Install plugin dependencies
       ansible.builtin.apt:
@@ -16,6 +19,7 @@
         group: "{{ icinga2_group }}"
       when: ansible_system == "Linux"
       ignore_errors: true
+      register: _errors
 
     - name: Copy the services definition file
       ansible.builtin.template:
@@ -23,6 +27,3 @@
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mssql.conf"
       notify: Reload Icinga2
       when: ansible_system == "Linux"
-  when: >
-    icinga2_client_vars.mssql is defined
-    or ansible_fqdn == icinga2_master_inventory_hostname
