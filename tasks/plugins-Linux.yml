@@ -22,6 +22,10 @@
 - name: Install generic Linux plugins
   ansible.builtin.include_tasks: plugins/linux/generic-linux.yml
 
+# Always OK
+- name: Install Always OK plugin
+  ansible.builtin.include_tasks: plugins/linux/always-ok.yml
+
 # Harisekhon Plugins on master node
 - name: Install Harisekhon plugins
   ansible.builtin.include_tasks: plugins/linux/harisekhon.yml

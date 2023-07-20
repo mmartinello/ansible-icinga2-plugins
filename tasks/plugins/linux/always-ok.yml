@@ -1,0 +1,17 @@
+---
+- name: Copy the Always OK plugin
+  ansible.builtin.copy:
+    src: files/plugins/always-ok.sh
+    dest: "{{ icinga2_plugins_dest_dir }}/always-ok.sh"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0750'
+
+- name: Copy the Always OK plugin services file
+  ansible.builtin.template:
+    src: plugins/linux/always-ok.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/always-ok.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Reload Icinga2

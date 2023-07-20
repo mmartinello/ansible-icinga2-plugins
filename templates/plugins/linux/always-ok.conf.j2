@@ -1,0 +1,54 @@
+# {{ ansible_managed }}
+
+/*
+Commands and services for Always OK Wrapper
+*/
+
+
+#
+# Check Commands
+###############################################################################
+
+# always_ok
+object CheckCommand "_always_ok" {
+    import "ipv4-or-ipv6"
+
+    command = [ "/opt/icinga2-plugins/always-ok" ]
+
+    arguments = {
+        "--command" = {
+            value = "$always_ok_command$"
+            description = "Check command to be executed"
+            required = true
+            order = -2
+            skip_key = true
+        }
+        "--arguments" = {
+            value = "$always_ok_arguments$"
+            description = "Command arguments"
+            repeat_key = true
+            order = -1
+            skip_key = true
+        }
+    }
+}
+
+
+#
+# Services
+###############################################################################
+
+# Generic service assignment
+# Assigned with '_always_ok' host var
+apply Service for (service_name => service_config in host.vars._always_ok) {
+    import "generic-service"
+    name = service_name
+
+    # Custom icon
+    if (service_config.icon_image) {
+      icon_image = service_config.icon_image
+    }
+
+    check_command = "_always_ok"
+    vars += service_config
+}
