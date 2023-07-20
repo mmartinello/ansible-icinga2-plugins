@@ -1,0 +1,48 @@
+---
+- name: Download FNagios Icons pack
+  ansible.builtin.get_url:
+    url: "{{ icinga2_plugins_icons_fnagios_icon_pack_download_url }}"
+    dest: /tmp/fnagios_icon_pack.tar
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_user }}"
+    mode: '0600'
+    force: true
+
+- name: Create the temporary directory
+  ansible.builtin.file:
+    path: /tmp/fnagios_icon_pack
+    state: directory
+    mode: '0600'
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_user }}"
+
+- name: Extract the downloaded archive
+  ansible.builtin.unarchive:
+    src: /tmp/fnagios_icon_pack.tar
+    dest: /tmp/fnagios_icon_pack
+    remote_src: true
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_user }}"
+
+- name: Create the destination directory
+  ansible.builtin.file:
+    path: "{{ icinga2_plugins_icons_dir_path }}/fnagios"
+    state: directory
+    mode: '0755'
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_user }}"
+
+- name: Copy icons
+  ansible.builtin.shell: "cp -a /tmp/fnagios_icon_pack/* {{ icinga2_plugins_icons_dir_path }}/fnagios/"
+  register: _output
+  changed_when: _output.rc == 0
+
+- name: Remove the temporary directory
+  ansible.builtin.command: rm -rf /tmp/fnagios_icon_pack
+  register: _output
+  changed_when: _output.rc == 0
+
+- name: Remove the downloaded archive
+  ansible.builtin.file:
+    path: /tmp/fnagios_icon_pack.tar
+    state: absent

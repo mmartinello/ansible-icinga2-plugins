@@ -40,4 +40,7 @@ icinga2_plugins_linuxfabrik: true
 icinga2_plugins_icons_install: false
 
 # Icingaweb2 icons destination directory
-icinga2_plugins_icons_dir_path: /usr/share/icingaweb2/public/img/icons/
+icinga2_plugins_icons_dir_path: /usr/share/icingaweb2/public/img/icons
+
+# FNagios Icon pack download URL
+icinga2_plugins_icons_fnagios_icon_pack_download_url: https://exchange.icinga.com/exchange/F%2ANagios%20icon%20pack%20%28Status%20Map%20and%20Host%20View%20icons%29/files/21/FNagios.tar.gz

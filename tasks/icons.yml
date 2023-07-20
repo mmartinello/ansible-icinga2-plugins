@@ -1,0 +1,6 @@
+---
+- name: Install custom icons
+  ansible.builtin.include_tasks: icons/custom.yml
+
+- name: Install FNagios icon pack
+  ansible.builtin.include_tasks: icons/fnagios_icons.yml

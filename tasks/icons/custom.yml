@@ -1,0 +1,32 @@
+---
+- name: Get the username running the deploy
+  ansible.builtin.command: whoami
+  delegate_to: localhost
+  register: _whoami
+  changed_when: _whoami.rc == 0
+  vars:
+    ansible_become: false
+
+- name: Allow RSYNC for new super user without SUDO password
+  ansible.builtin.blockinfile:
+    path: /etc/sudoers.d/zzz-ansible-rsync-temp
+    state: present
+    create: true
+    mode: '0440'
+    marker: "\n# ----- {mark} ANSIBLE MANAGED BLOCK -----\n"
+    block: |
+
+      {{ _whoami.stdout }} ALL=NOPASSWD: /usr/bin/rsync
+      Defaults:{{ _whoami.stdout }}        !requiretty
+
+- name: Syncronize custom icons
+  ansible.posix.synchronize:
+    src: files/icons/custom
+    dest: "{{ icinga2_plugins_icons_dir_path }}/"
+    delete: true
+    recursive: true
+
+- name: Disallow RSYNC for new super user without SUDO password
+  ansible.builtin.file:
+    path: /etc/sudoers.d/zzz-ansible-rsync-temp
+    state: absent
