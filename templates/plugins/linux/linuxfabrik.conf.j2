@@ -27,6 +27,8 @@ apply Service "About me" {
   check_interval = 24h
   icon_image = "about-me.png"
 
+  vars.linuxfabrik_uptime_always_ok = true
+
   assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
 }
 

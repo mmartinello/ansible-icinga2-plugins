@@ -19,12 +19,12 @@ apply Service "System Memory" {
   assign where host.vars.client_endpoint && host.vars.os == "Windows"
 }
 
-apply Service "Network" {
-  import "generic-service"
-  check_command = "network-windows"
-  command_endpoint = host.vars.client_endpoint
-  assign where host.vars.client_endpoint && host.vars.os == "Windows"
-}
+#apply Service "Network" {
+#  import "generic-service"
+#  check_command = "network-windows"
+#  command_endpoint = host.vars.client_endpoint
+#  assign where host.vars.client_endpoint && host.vars.os == "Windows"
+#}
 
 apply Service "Running Processes" {
   import "generic-service"
@@ -49,26 +49,26 @@ apply Service "Swap" {
 #  assign where host.vars.client_endpoint && host.vars.os == "Windows"
 #}
 
-apply Service "System Uptime" {
-  import "generic-service"
-  check_command = "uptime-windows"
-  command_endpoint = host.vars.client_endpoint
-  assign where host.vars.client_endpoint && host.vars.os == "Windows"
-}
+#apply Service "System Uptime" {
+#  import "generic-service"
+#  check_command = "uptime-windows"
+#  command_endpoint = host.vars.client_endpoint
+#  assign where host.vars.client_endpoint && host.vars.os == "Windows"
+#}
 
-apply Service "Logged Users" {
-  import "generic-service"
-  check_command = "users-windows"
-  command_endpoint = host.vars.client_endpoint
-  assign where host.vars.client_endpoint && host.vars.os == "Windows"
-}
+#apply Service "Logged Users" {
+#  import "generic-service"
+#  check_command = "users-windows"
+#  command_endpoint = host.vars.client_endpoint
+#  assign where host.vars.client_endpoint && host.vars.os == "Windows"
+#}
 
-apply Service "Disks" {
-  import "generic-service"
-  check_command = "disk-windows"
-  command_endpoint = host.vars.client_endpoint
-  assign where host.vars.client_endpoint && host.vars.os == "Windows"
-}
+#apply Service "Disks" {
+#  import "generic-service"
+#  check_command = "disk-windows"
+#  command_endpoint = host.vars.client_endpoint
+#  assign where host.vars.client_endpoint && host.vars.os == "Windows"
+#}
 
 apply Service for (service_win_service => config in host.vars.win_services) {
   import "generic-service"
