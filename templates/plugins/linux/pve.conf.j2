@@ -145,12 +145,22 @@ apply Service "Proxmox VE - Disk SMART Status" {
 apply Service "Proxmox VE - Updates" {
   import "generic-service"
 
-  check_command = "_check_pve"
+  check_command = "_always_ok"
   icon_image = "updates.png"
   enable_notifications = false
 
-  vars += host.vars.pve
   vars.pve_mode = "node-updates-available"
+  vars.always_ok_command = "/opt/icinga2-plugins/check_pve.rb"
+
+  vars.always_ok_arguments = [ "--mode node-updates-available"]
+  vars.always_ok_arguments+= [ "--address " + host.vars.pve.pve_address ]
+  vars.always_ok_arguments+= [ "--username " + host.vars.pve.pve_username ]
+  vars.always_ok_arguments+= [ "--password " + host.vars.pve.pve_password ]
+  vars.always_ok_arguments+= [ "--node " + host.vars.pve.pve_node ]
+
+  if (host.vars.pve.pve_insecure) {
+    vars.always_ok_arguments+= "--insecure"
+  }
 
   assign where host.vars.pve
 }
