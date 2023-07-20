@@ -1,5 +1,5 @@
 ---
 - name: Install plugins dependencies
-  yum:
+  ansible.builtin.yum:
     name: "{{ icinga2_plugins_dependencies }}"
     state: present

@@ -1,5 +1,8 @@
 ---
 - name: Install the NRPE check plugin
+  when: >
+    icinga2_client_vars.nrpe is defined
+    or ansible_fqdn == icinga2_master_inventory_hostname
   block:
     - name: Install the plugin
       ansible.builtin.apt:
@@ -11,7 +14,7 @@
       ansible.builtin.template:
         src: plugins/linux/nrpe.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/nrpe.conf"
+        mode: '0644'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
       notify: Reload Icinga2
-  when: >
-    icinga2_client_vars.nrpe is defined
-    or ansible_fqdn == icinga2_master_inventory_hostname

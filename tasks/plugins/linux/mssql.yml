@@ -25,5 +25,8 @@
       ansible.builtin.template:
         src: plugins/linux/mssql.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/mssql.conf"
+        mode: '0644'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
       notify: Reload Icinga2
       when: ansible_system == "Linux"

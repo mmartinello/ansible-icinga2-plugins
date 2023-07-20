@@ -1,34 +1,42 @@
 ---
 - name: Install the check_zfs plugin
-  block:
-    - name: Copy the check_zfs plugin
-      copy:
-        src: "{{ icinga2_plugins_src_dir }}/check_zfs.py"
-        dest: "{{ icinga2_plugins_dest_dir }}/check_zfs.py"
-        mode: 0750
-        owner: "{{ icinga2_user }}"
-        group: "{{ icinga2_group }}"
-      ignore_errors: true
-
-    - name: Copy the check_zpool_scrub plugin
-      copy:
-        src: "{{ icinga2_plugins_src_dir }}/check_zpool_scrub"
-        dest: "{{ icinga2_plugins_dest_dir }}/check_zpool_scrub"
-        mode: 0750
-        owner: "{{ icinga2_user }}"
-        group: "{{ icinga2_group }}"
-      ignore_errors: true
-
-    - name: Configure sudo
-      template:
-        src: sudoers.d/zfs.j2
-        dest: /etc/sudoers.d/icinga2-zfs
-
-    - name: Copy the services definition file
-      template:
-        src: plugins/linux/zfs.conf.j2
-        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/zfs.conf"
-      notify: Reload Icinga2
   when: >
     icinga2_client_vars.zfs is defined
     or ansible_fqdn == icinga2_master_inventory_hostname
+  block:
+    - name: Copy the check_zfs plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_zfs.py"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_zfs.py"
+        mode: '0750'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+      ignore_errors: true
+      register: _ignore_errors
+
+    - name: Copy the check_zpool_scrub plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_zpool_scrub"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_zpool_scrub"
+        mode: '0750'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+      ignore_errors: true
+      register: _ignore_errors
+
+    - name: Configure sudo
+      ansible.builtin.template:
+        src: sudoers.d/zfs.j2
+        dest: /etc/sudoers.d/icinga2-zfs
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: Copy the services definition file
+      ansible.builtin.template:
+        src: plugins/linux/zfs.conf.j2
+        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/zfs.conf"
+        mode: '0644'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+      notify: Reload Icinga2

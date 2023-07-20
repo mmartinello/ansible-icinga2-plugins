@@ -1,6 +1,8 @@
 ---
-- include_tasks: install-Debian.yml
+- name: Install on Debian system
+  ansible.builtin.include_tasks: install-Debian.yml
   when: ansible_os_family | lower in icinga2_apt_distros
 
-- include_tasks: install-Centos.yml
+- name: Install on CentOS system
+  ansible.builtin.include_tasks: install-Centos.yml
   when: ansible_os_family | lower in icinga2_yum_distros

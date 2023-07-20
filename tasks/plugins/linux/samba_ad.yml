@@ -1,5 +1,8 @@
 ---
 - name: Install the Samba AD check plugin
+  when: >
+    icinga2_client_vars.samba_ad is defined
+    or ansible_fqdn == icinga2_master_inventory_hostname
   block:
     - name: Set package dependencies
       ansible.builtin.set_fact:
@@ -30,17 +33,21 @@
         owner: "{{ icinga2_user }}"
         group: "{{ icinga2_group }}"
       ignore_errors: true
+      register: _ignore_errors
 
     - name: Configure sudo
       ansible.builtin.template:
         src: sudoers.d/samba_ad.j2
         dest: /etc/sudoers.d/icinga2-samba_ad
+        mode: '0644'
+        owner: root
+        group: root
 
     - name: Copy the services definition file
       ansible.builtin.template:
         src: plugins/linux/samba_ad.conf.j2
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/samba_ad.conf"
+        mode: '0644'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
       notify: Reload Icinga2
-  when: >
-    icinga2_client_vars.samba_ad is defined
-    or ansible_fqdn == icinga2_master_inventory_hostname

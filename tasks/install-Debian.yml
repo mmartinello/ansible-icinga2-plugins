@@ -1,6 +1,6 @@
 ---
 - name: Install plugins dependencies
-  apt:
+  ansible.builtin.apt:
     name: "{{ icinga2_plugins_dependencies }}"
     state: present
-    update_cache: yes
+    update_cache: true
