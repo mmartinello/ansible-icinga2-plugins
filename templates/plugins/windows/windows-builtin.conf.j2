@@ -1,16 +1,16 @@
-apply Service "System Load" {
-  import "generic-service"
-  check_command = "load-windows"
-  command_endpoint = host.vars.client_endpoint
-  assign where host.vars.client_endpoint && host.vars.os == "Windows" && host.vars.check_load != false
-
-  if (host.vars.load_win_warn) {
-    vars.load_win_warn = host.vars.load_win_warn
-  }
-  if (host.vars.load_win_crit) {
-    vars.load_win_crit = host.vars.load_win_crit
-  }
-}
+#apply Service "System Load" {
+#  import "generic-service"
+#  check_command = "load-windows"
+#  command_endpoint = host.vars.client_endpoint
+#  assign where host.vars.client_endpoint && host.vars.os == "Windows" && host.vars.check_load != false
+#
+#  if (host.vars.load_win_warn) {
+#    vars.load_win_warn = host.vars.load_win_warn
+#  }
+#  if (host.vars.load_win_crit) {
+#    vars.load_win_crit = host.vars.load_win_crit
+#  }
+#}
 
 apply Service "System Memory" {
   import "generic-service"
