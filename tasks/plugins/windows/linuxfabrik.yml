@@ -1,0 +1,38 @@
+---
+- name: Install Linuxfabrik Monitoring Plugins
+  when: >
+    icinga2_plugins_linuxfabrik
+    and ansible_system == "Win32NT"
+  block:
+    - name: Install Linuxfabrik Monitoring Plugins
+      ansible.builtin.import_role:
+        name: mmartinello.linuxfabrik-monitoring-plugins
+      vars:
+        linuxfabrik_monitoring_plugins_reinstall: "{{ icinga2_linuxfabrik_monitoring_plugins_reinstall | default(false) }}"
+        linuxfabrik_monitoring_plugins_dest_path: "{{ icinga2_plugins_win_dest_dir }}/linuxfabrik"
+        linuxfabrik_monitoring_plugins_commands_dest_path: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}"
+        linuxfabrik_monitoring_plugins_icons_install: false
+        linuxfabrik_monitoring_plugins_commands_include: false
+
+    - name: Deploy Linuxfabrik Monitoring Plugins Services Configuration File on Windows
+      ansible.windows.win_template:
+        src: "templates/plugins/windows/windows-linuxfabrik.conf.j2"
+        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/windows-linuxfabrik-services.conf"
+      notify: Restart Icinga2 on Windows
+
+- name: Copy the services definition file on Master server
+  ansible.builtin.template:
+    src: "templates/plugins/windows/windows-linuxfabrik.conf.j2"
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/windows-linuxfabrik-services.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Restart Icinga2
+  when: >
+    icinga2_plugins_linuxfabrik
+    and ansible_system == "Linux"
+    and ansible_fqdn == icinga2_master_inventory_hostname
+  vars:
+    icinga2_config_root_dir: /etc/icinga2
+    icinga2_user: nagios
+    icinga2_group: nagios

@@ -10,11 +10,11 @@
       vars:
         linuxfabrik_monitoring_plugins_reinstall: "{{ icinga2_linuxfabrik_monitoring_plugins_reinstall | default(false) }}"
         linuxfabrik_monitoring_plugins_dest_path: "{{ icinga2_plugins_dest_dir }}/linuxfabrik"
-        linuxfabrik_monitoring_plugins_commands_dest_path: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/linuxfabrik"
+        linuxfabrik_monitoring_plugins_commands_dest_path: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}"
         linuxfabrik_monitoring_plugins_icons_install: "{{ icinga2_plugins_icons_install | default(false) }}"
         linuxfabrik_monitoring_plugins_commands_include: false
 
-    - name: Deploy Linuxfabrik Monitoring Plugins Commands Configuration File
+    - name: Deploy Linuxfabrik Monitoring Plugins Services Configuration File
       ansible.builtin.template:
         src: "templates/plugins/linux/linuxfabrik.conf.j2"
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/linuxfabrik-services.conf"

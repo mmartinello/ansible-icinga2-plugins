@@ -8,4 +8,4 @@
 
 # LinuxFabrik Monitoring Plugins
 - name: Install LinuxFabrik Monitoring Plugins
-  ansible.builtin.include_tasks: plugins/linux/windows-linuxfabrik.yml
+  ansible.builtin.include_tasks: plugins/windows/linuxfabrik.yml
