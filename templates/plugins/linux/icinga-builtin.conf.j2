@@ -10,19 +10,7 @@
  * configuration validation (`icinga2 daemon -C`).
  */
 
-/*
- * This is an example host based on your
- * local host's FQDN. Specify the NodeName
- * constant in `constants.conf` or use your
- * own description, e.g. "db-host-1".
- */
-
-/*
- * These are generic `ping4` and `ping6`
- * checks applied to all hosts having the
- * `address` resp. `address6` attribute
- * defined.
- */
+# Generic IPv4 ping
 apply Service "Ping IPv4" {
   import "generic-service"
 
@@ -30,8 +18,10 @@ apply Service "Ping IPv4" {
 
   assign where host.address
   ignore where host.vars.skip_ping
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
+# Generic IPv6 ping
 apply Service "Ping IPv6" {
   import "generic-service"
 
@@ -39,6 +29,7 @@ apply Service "Ping IPv6" {
 
   assign where host.address6
   ignore where host.vars.skip_ping
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 /*
@@ -301,4 +292,6 @@ apply Service for (service_name => service_config in host.vars.ping) {
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }

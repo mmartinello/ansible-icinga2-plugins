@@ -663,6 +663,30 @@ apply Service for (service_name => service_config in host.vars.path_rw_test) {
   assign where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
+# Host IPv4 Ping
+# Assigned on every host with a valid IPv4 IP address
+apply Service "Ping IPv4" {
+  import "generic-service"
+
+  check_command = "_linuxfabrik_ping"
+  icon_image = "ping.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.address
+  ignore where host.vars.skip_ping
+}
+
+# Host IPv6 ping
+# Assigned on every host with a valid IPv4 IP address
+apply Service "Ping IPv6" {
+  import "generic-service"
+
+  check_command = "_linuxfabrik_ping"
+  icon_image = "ping.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.address6
+  ignore where host.vars.skip_ping
+}
+
 # Check ping
 # Assigned with 'ping' host var
 apply Service for (service_name => service_config in host.vars.ping) {
