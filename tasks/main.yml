@@ -16,12 +16,12 @@
         - vars
 
 # Install dependencies
-#- name: Install generic dependencies
-#  ansible.builtin.import_tasks: install.yml
+- name: Install generic dependencies
+  ansible.builtin.import_tasks: install.yml
 
 # Install custom plugins
-#- name: Install plugins
-#  ansible.builtin.import_tasks: plugins.yml
+- name: Install plugins
+  ansible.builtin.import_tasks: plugins.yml
 
 # Install icons
 - name: Install icons

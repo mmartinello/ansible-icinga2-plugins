@@ -11,6 +11,14 @@
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"
 
+- name: Create the icons destination directory
+  ansible.builtin.file:
+    path: "{{ icinga2_plugins_icons_dir_path }}/plugins"
+    state: directory
+    mode: '0755'
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+
 ###############################################################################
 # Plugin list
 
