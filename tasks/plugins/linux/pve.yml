@@ -58,13 +58,21 @@
         mode: '0750'
       loop: "{{ _plugin_files }}"
 
-- name: Copy the icons
-  ansible.builtin.copy:
-    src: "files/icons/{{ item }}"
-    dest: "{{ icinga2_plugins_icons_dir_path }}/{{ item }}"
+- name: Create the icons destination directory
+  ansible.builtin.file:
+    path: "{{ icinga2_plugins_icons_dir_path }}/plugins"
+    state: directory
+    mode: '0755'
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"
+
+- name: Copy the icons
+  ansible.builtin.copy:
+    src: "files/icons/plugins/{{ item }}"
+    dest: "{{ icinga2_plugins_icons_dir_path }}/plugins/{{ item }}"
     mode: '0644'
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
   loop: "{{ _icons_list }}"
   when: >
     ansible_fqdn == icinga2_master_inventory_hostname
