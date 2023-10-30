@@ -111,6 +111,788 @@ object CheckCommand "_hk_check_elasticsearch_cluster_status" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+object CheckCommand "_hk_check_elasticsearch_cluster_disk_balance" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_disk_balance.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-w" = {
+                        value = "$elasticsearch_cluster_disk_balance_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive, default: 20)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_cluster_disk_balance_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive, default: 80)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_cluster_shard_balance" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_shard_balance.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-w" = {
+                        value = "$elasticsearch_cluster_shard_balance_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive, default: 20)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_cluster_shard_balance_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive, default: 80)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_cluster_shards" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_shards.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-C" = {
+                        value = "$elasticsearch_cluster$"
+                        description = "Cluster name to expect (optional). Cluster name is used for auto-discovery and should be unique to each cluster in a single network"
+                }
+                "--active-primary-shards" = {
+                        value = "$elasticsearch_cluster_shards_active_primary_shards$"
+                        description = "Active Primary Shards lower thresholds (inclusive, optional)"
+                }
+                "--active-shards" = {
+                        value = "$elasticsearch_cluster_shards_active_shards$"
+                        description = "Active Shards lower thresholds (inclusive, optional)"
+                }
+                "--relocating-shards" = {
+                        value = "$elasticsearch_cluster_shards_relocating_shards$"
+                        description = "Relocating Shards upper thresholds (inclusive, default w,c: 0,0:)"
+                }
+                "--initializing-shards" = {
+                        value = "$elasticsearch_cluster_shards_initializing_shards$"
+                        description = "Initializing Shards upper thresholds (inclusive, default w,c: 0,0:)"
+                }
+                "--unassigned-shards" = {
+                        value = "$elasticsearch_cluster_shards_unassigned_shards$"
+                        description = "Unassigned Shards upper thresholds (inclusive, default w,c: 0,1)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_cluster_stats" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_stats.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-K" = {
+                        value = "$elasticsearch_cluster_stats_key$"
+                        description = "Stat Key(s) to fetch (eg. indices.count, indices.docs.count, nodes.fs.disk_writes, nodes.fs.free_in_bytes). Multiple keys may be comma separated. Optional, all stats will be printed if no specific stat(s) requested"
+                }
+                "-w" = {
+                        value = "$elasticsearch_cluster_stats_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_cluster_stats_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_cluster_status_nodes_shards" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_status_nodes_shards.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-C" = {
+                        value = "$elasticsearch_cluster$"
+                        description = "Cluster name to expect (optional). Cluster name is used for auto-discovery and should be unique to each cluster in a single network"
+                }
+                "--data-nodes" = {
+                        value = "$elasticsearch_cluster_status_nodes_shards_data_nodes$"
+                        description = "Data Node lower thresholds (inclusive, optional)"
+                }
+                "--active-primary-shards" = {
+                        value = "$elasticsearch_cluster_status_nodes_shards_active_primary_shards$"
+                        description = "Active Primary Shards lower thresholds (inclusive, optional)"
+                }
+                "--active-shards" = {
+                        value = "$elasticsearch_cluster_status_nodes_shards_active_shards$"
+                        description = "Active Shards lower thresholds (inclusive, optional)"
+                }
+                "--relocating-shards" = {
+                        value = "$elasticsearch_cluster_status_nodes_shards_relocating_shards$"
+                        description = "Relocating Shards upper thresholds (inclusive, default w,c: 0,0:)"
+                }
+                "--initializing-shards" = {
+                        value = "$elasticsearch_cluster_status_nodes_shards_initializing_shards$"
+                        description = "Initializing Shards upper thresholds (inclusive, default w,c: 0,0:)"
+                }
+                "--unassigned-shards" = {
+                        value = "$elasticsearch_cluster_status_nodes_shards_unassigned_shards$"
+                        description = "Unassigned Shards upper thresholds (inclusive, default w,c: 0,1)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_data_nodes" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_data_nodes.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-C" = {
+                        value = "$elasticsearch_cluster$"
+                        description = "Cluster name to expect (optional). Cluster name is used for auto-discovery and should be unique to each cluster in a single network"
+                }
+                "-w" = {
+                        value = "$elasticsearch_data_nodes_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive, default: 2)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_data_nodes_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive, default: 1)"
+                }        
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_doc_count" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_doc_count.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-I" = {
+                        value = "$elasticsearch_doc_count_index$"
+                        description = "Elasticsearch index ($ELASTICSEARCH_INDEX)"
+                }
+                "--list-indices" = {
+                        set_if = "$elasticsearch_doc_count_list_indices$"
+                        description = "List Elasticsearch indices"
+                }
+                "-w" = {
+                        value = "$elasticsearch_doc_count_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_doc_count_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_master_node" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_master_node.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-N" = {
+                        value = "$elasticsearch_master_node_noder$"
+                        description = "Hostname or IP address of node for which to expect as master, raises warning if a different master node is found to alert us to a possible failover event. Optional"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_node_disk_percent" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_node_disk_percent.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-N" = {
+                        value = "$elasticsearch_node_disk_percent_node$"
+                        description = "Elasticsearch node ($ELASTICSEARCH_NODE)"
+                }
+                "-w" = {
+                        value = "$elasticsearch_node_disk_percent_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive, default: 75)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_node_disk_percent_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive, default: 90)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_nodes" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_nodes.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-C" = {
+                        value = "$elasticsearch_cluster$"
+                        description = "Cluster name to expect (optional). Cluster name is used for auto-discovery and should be unique to each cluster in a single network"
+                }
+                "-w" = {
+                        value = "$elasticsearch_nodes_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive, default: 2)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_nodes_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive, default: 1)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_shards_state_detail" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_shards_state_detail.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-I" = {
+                        value = "$elasticsearch_shards_state_detail_index$"
+                        description = "Elasticsearch index"
+                }
+                "--list-indices" = {
+                        set_if = "$elasticsearch_shards_state_detail_list_indices$"
+                        description = "List Elasticsearch indices"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-m" = {
+                        value = "$elasticsearch_multiline$"
+                        description = "Multiline output for easier viewing"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_tasks_pending" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_tasks_pending.pl" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "ElasticSearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "ElasticSearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "ElasticSearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSearch password"
+                }
+                "-C" = {
+                        value = "$elasticsearch_cluster$"
+                        description = "Cluster name to expect (optional). Cluster name is used for auto-discovery and should be unique to each cluster in a single network"
+                }
+                "-w" = {
+                        value = "$elasticsearch_tasks_pending_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive, default: 0:20)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_tasks_pending_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive, default: 30)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL connection"
+                }
+                "--ssl-CA-path" = {
+                        value = "$elasticsearch_ssl_ca_path$"
+                        description = "Path to CA certificate directory for validating SSL certificate"
+                }
+                "-ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
+object CheckCommand "_hk_check_elasticsearch_tasks_slow" {
+        import "ipv4-or-ipv6"
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_tasks_slow.py" ]
+
+        arguments = {
+                "-H" = {
+                        value = "$elasticsearch_host$"
+                        description = "Elasticsearch host"
+                }
+                "-P" = {
+                        value = "$elasticsearch_port$"
+                        description = "Elasticsearch port (default: 9200)"
+                }
+                "-u" = {
+                        value = "$elasticsearch_user$"
+                        description = "Elasticsearch user"
+                }
+                "-p" = {
+                        value = "$elasticsearch_password$"
+                        description = "ElasticSsarch password"
+                }
+                "--kerberos" = {
+                        value = "$elasticsearch_kerberos$"
+                        description = "Kerberos SpNego authentication, uses TGT cache from $KRB5CCNAME or keytab from $KRB5_CLIENT_KEYTAB environment variable if defined (overrides --user/--password)"
+                }
+                "-S" = {
+                        set_if = "$elasticsearch_ssl$"
+                        description = "Use SSL"
+                }
+                "--ssl-noverify" = {
+                        set_if = "$elasticsearch_ssl_noverify$"
+                        description = "Do not verify SSL certificate"
+                }
+                "--node" = {
+                        value = "$elasticsearch_tasks_slow_node$"
+                        description = "Check tasks on this node only. Matches hostname, IP or node name. Careful, getting this wrong will return zero results"
+                }
+                "--search-tasks" = {
+                        set_if = "$elasticsearch_tasks_slow_search_tasks$"
+                        description = "Check only search tasks"
+                }
+                "--cluster-tasks" = {
+                        set_if = "$elasticsearch_tasks_slow_cluster_tasks$"
+                        description = "Check only cluster tasks"
+                }
+                "-w" = {
+                        value = "$elasticsearch_tasks_slow_warning$"
+                        description = "Warning  threshold or ran:ge (inclusive, default: 0:20)"
+                }
+                "-c" = {
+                        value = "$elasticsearch_tasks_slow_critical$"
+                        description = "Critical  threshold or ran:ge (inclusive, default: 30)"
+                }
+                "--list-tasks" = {
+                        set_if = "$elasticsearch_tasks_slow_list_tasks$"
+                        description = "List tasks"
+                }
+                "-t" = {
+                        value = "$elasticsearch_timeout$"
+                        description = "Timeout in secs ($TIMEOUT, default: 10)"
+                }
+                "-v" = {
+                        value = "$elasticsearch_verbose$"
+                        description = "Verbose level ($VERBOSE=<int>, or use multiple -v, -vv, -vvv)"
+                }
+        }
+
+        vars.elasticsearch_host = "$check_address$"
+}
+
 # Elasticsearch connection: assigned through 'elasticsearch' host var
 apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
@@ -124,6 +906,123 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Cluster status"
   check_command = "_hk_check_elasticsearch_cluster_status"
+
+  vars += service_config
+}
+
+# Elasticsearch cluster disk balance: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Cluster disk balance"
+  check_command = "_hk_check_elasticsearch_cluster_disk_balance"
+
+  vars += service_config
+}
+
+# Elasticsearch cluster shards balance: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Cluster shards balance"
+  check_command = "_hk_check_elasticsearch_cluster_shard_balance"
+
+  vars += service_config
+}
+
+# Elasticsearch cluster shards: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Cluster shards"
+  check_command = "_hk_check_elasticsearch_cluster_shards"
+
+  vars += service_config
+}
+
+# Elasticsearch cluster stats: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Cluster stats"
+  check_command = "_hk_check_elasticsearch_cluster_stats"
+
+  vars += service_config
+}
+
+# Elasticsearch cluster status nodes shards: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Cluster status nodes shards"
+  check_command = "_hk_check_elasticsearch_cluster_status_nodes_shards"
+
+  vars += service_config
+}
+
+# Elasticsearch data nodes: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Data nodes"
+  check_command = "_hk_check_elasticsearch_data_nodes"
+
+  vars += service_config
+}
+
+# Elasticsearch documents count: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Documents count"
+  check_command = "_hk_check_elasticsearch_doc_count"
+
+  vars += service_config
+}
+
+# Elasticsearch master node: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Master node"
+  check_command = "_hk_check_elasticsearch_master_node"
+
+  vars += service_config
+}
+
+# Elasticsearch node disk percent: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Node disk percent"
+  check_command = "_hk_check_elasticsearch_node_disk_percent"
+
+  vars += service_config
+}
+
+# Elasticsearch nodes: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Nodes"
+  check_command = "_hk_check_elasticsearch_nodes"
+
+  vars += service_config
+}
+
+# Elasticsearch shards state detail: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Shards state detail"
+  check_command = "_hk_check_elasticsearch_shards_state_detail"
+
+  vars += service_config
+}
+
+# Elasticsearch tasks pending: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Tasks pending"
+  check_command = "_hk_check_elasticsearch_tasks_pending"
+
+  vars += service_config
+}
+
+# Elasticsearch tasks slow: assigned through 'elasticsearch' host var
+apply Service for (service_name => service_config in host.vars.elasticsearch) {
+  import "generic-service"
+  name = service_name + " - Tasks slow"
+  check_command = "_hk_check_elasticsearch_tasks_slow"
 
   vars += service_config
 }
