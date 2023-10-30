@@ -21,6 +21,17 @@
       ignore_errors: true
       register: _errors
 
+    - name: Copy the check_mssql_jobs plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_mssql_jobs.py"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_mssql_jobs.py"
+        mode: '0750'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+      when: ansible_system == "Linux"
+      ignore_errors: true
+      register: _errors
+
     - name: Copy the services definition file
       ansible.builtin.template:
         src: plugins/linux/mssql.conf.j2

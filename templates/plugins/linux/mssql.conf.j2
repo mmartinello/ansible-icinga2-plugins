@@ -87,6 +87,65 @@ object CheckCommand "_check_mssql_health" {
         vars.mssql_health_commit = true
 }
 
+object CheckCommand "_check_mssql_jobs" {
+        import "ipv4-or-ipv6"
+
+        command = [ "/opt/icinga2-plugins/check_mssql_jobs.py" ]
+
+        arguments = {
+                "--output-type" = {
+                        value = "$mssql_jobs_output_type$"
+                        description = "The type of output to be rendered: list or table"
+                }
+                "--never-run-level" = {
+                        value = "$mssql_jobs_never_run_level$"
+                        description = "The level to be assigned to never run jobs (OK,WARNING,CRITICAL,UNKNOWN)"
+                }
+                "--never-run-exclude" = {
+                        set_if = "$mssql_jobs_never_run_exclude$"
+                        description = "Exclude never run jobs"
+                }
+                "--ok-exclude" = {
+                        set_if = "$mssql_jobs_ok_esclude$"
+                        description = "Exclude succesfully run jobs"
+                }
+                "--cmd-path" = {
+                        value = "$mssql_jobs_cmd_path$"
+                        description = "The check_mssql_health command path"
+                }
+                "--hostname" = {
+                        value = "$mssql_jobs_hostname$"
+                        description = "The database server"
+                }
+                "--port" = {
+                        value = "$mssql_jobs_port$"
+                        description = "The port, where the server listens (Default: 1433)"
+                }
+                "--username" = {
+                        value = "$mssql_jobs_username$"
+                        description = "The database user"
+                }
+                "--password" = {
+                        value = "$mssql_jobs_password$"
+                        description = "The database password"
+                }
+                "--warning" = {
+                        value = "$mssql_jobs_warning$"
+                        description = "Values outside this range result in a WARNING (Default: 7200)"
+                }
+                "--critical" = {
+                        value = "$mssql_jobs_critical$"
+                        description = "Values outside this range result in a CRITICAL (Default: 10800)"
+                }
+                "--lookback" = {
+                        value = "$mssql_jobs_lookback$"
+                        description = "The number of minutes to look back for failed jobs (Default: 86400)"
+                }
+	}
+
+	vars.mssql_jobs_hostname = "$check_address$"
+}
+
 
 ###############################################################################
 # Automatic service definitions WITHOUT specific mode configures (through
@@ -128,13 +187,20 @@ apply Service for (service_name => service_config in host.vars.mssql) {
 apply Service for (service_name => service_config in host.vars.mssql) {
     import "generic-service"
 
-    check_command = "_check_mssql_health"
+    #check_command = "_check_mssql_health"
+    check_command = "_always_ok"
     name = service_name + " - Connected Users"
-    vars.mssql_health_mode = "connected-users"
-    vars.mssql_health_warning = "100"
-    vars.mssql_health_critical = "200"
-    
-    vars += service_config
+
+    enable_notifications = false
+
+    vars.always_ok_command = "{{ icinga2_plugins_dest_dir }}/check_mssql_health"
+
+    vars.always_ok_arguments = [ "--mode connected-users"]
+    vars.always_ok_arguments+= [ "--hostname " + host.address ]
+    vars.always_ok_arguments+= [ "--username " + service_config.mssql_health_username ]
+    vars.always_ok_arguments+= [ "--password " + service_config.mssql_health_password ]
+    vars.always_ok_arguments+= [ "--warning " + service_config.mssql_health_warning ]
+    vars.always_ok_arguments+= [ "--critical " + service_config.mssql_health_critical ]
 
     assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
 }
@@ -171,13 +237,19 @@ apply Service for (service_name => service_config in host.vars.mssql) {
 apply Service for (service_name => service_config in host.vars.mssql) {
     import "generic-service"
 
-    check_command = "_check_mssql_health"
+    check_command = "_always_ok"
     name = service_name + " - Latch-Requests per second"
-    vars.mssql_health_mode = "latches-waits"
-    vars.mssql_health_warning = "150"
-    vars.mssql_health_critical = "200"
-    
-    vars += service_config
+
+    enable_notifications = false
+
+    vars.always_ok_command = "/opt/icinga2-plugins/check_mssql_health"
+
+    vars.always_ok_arguments = [ "--mode latches-waits"]
+    vars.always_ok_arguments+= [ "--hostname " + host.address ]
+    vars.always_ok_arguments+= [ "--username " + service_config.mssql_health_username ]
+    vars.always_ok_arguments+= [ "--password " + service_config.mssql_health_password ]
+    vars.always_ok_arguments+= [ "--warning " + service_config.mssql_health_warning ]
+    vars.always_ok_arguments+= [ "--critical " + service_config.mssql_health_critical ]
 
     assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
 }
@@ -384,13 +456,17 @@ apply Service for (service_name => service_config in host.vars.mssql) {
 apply Service for (service_name => service_config in host.vars.mssql) {
     import "generic-service"
 
-    check_command = "_check_mssql_health"
+    check_command = "_check_mssql_jobs"
     name = service_name + " - Failed Jobs in last 24 hours"
-    vars.mssql_health_mode = "failed-jobs"
-    vars.mssql_health_lookback = "86400"
-    vars.mssql_health_warning = 7200
-    vars.mssql_health_critical = 10800
-    
+
+    vars.mssql_jobs_cmd_path = "/opt/icinga2-plugins/check_mssql_health"
+    vars.mssql_jobs_username = service_config.mssql_health_username
+    vars.mssql_jobs_password = service_config.mssql_health_password
+    vars.mssql_jobs_lookback = "86400"
+    vars.mssql_jobs_warning = 7200
+    vars.mssql_jobs_critical = 10800
+    vars.mssql_jobs_never_run_level = "OK"
+
     vars += service_config
 
     assign where !service_config.mssql_health_mode || service_config.mssql_health_mode == "auto"
