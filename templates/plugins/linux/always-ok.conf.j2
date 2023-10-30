@@ -13,7 +13,7 @@ Commands and services for Always OK Wrapper
 object CheckCommand "_always_ok" {
     import "ipv4-or-ipv6"
 
-    command = [ "/opt/icinga2-plugins/always-ok" ]
+    command = [ "{{ icinga2_plugins_dest_dir }}/always-ok" ]
 
     arguments = {
         "--command" = {
