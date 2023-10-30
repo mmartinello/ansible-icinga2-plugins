@@ -10,7 +10,7 @@ Commands and services for PVE checks:
 # Check Commands
 ###############################################################################
 
-# check_nvme (https://gitlab.com/6uellerBpanda/check_pve)
+# check_pve (https://gitlab.com/6uellerBpanda/check_pve)
 object CheckCommand "_check_pve" {
     import "ipv4-or-ipv6"
 
@@ -88,6 +88,97 @@ object CheckCommand "_check_pve" {
     vars.pve_address = "$check_address$"
 }
 
+# check_pve_backups (https://github.com/mmartinello/check_pve_backups)
+object CheckCommand "_check_pve_backups" {
+    import "ipv4-or-ipv6"
+
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_pve_backups.py" ]
+
+    arguments = {
+        "--check" = {
+            value = "$pve_backups_check$"
+            description = "The check to be done: (not_backed_up = virtual machines not backed up) (backups = available backups for virtual machines)"
+            required = true
+            skip_key = true
+            order = -1
+        }
+        "--host" = {
+            value = "$pve_backups_host$"
+            description = "The Proxmox API host"
+        }
+        "--debug" = {
+            set_if = "$pve_backups_debug$"
+            description = "Print debugging info to console. This may make the plugin not working with Icinga since it prints stuff to console."
+        }
+        "--debug2" = {
+            set_if = "$pve_backups_debug2$"
+            description = "Print exceptions to console. This may make the plugin not working and get wrong results with Icinga since it prints stuff to console."
+        }
+        "--host" = {
+            value = "$pve_backups_host$"
+            description = "The Proxmox API host"
+        }
+        "--port" = {
+            value = "$pve_backups_port$"
+            description = "The Proxmox port"
+        }
+        "--username" = {
+            value = "$pve_backups_username$"
+            description = "The Proxmox API username (username@realm)"
+            required = true
+        }
+        "--password" = {
+            value = "$pve_backups_password$"
+            description = "The Proxmox API password"
+            required = true
+        }
+        "--verify-ssl" = {
+            set_if = "$pve_backups_verify_ssl$"
+            description = "Verify the SSL certificate"
+        }
+        "--level" = {
+            value = "$pve_backups_level$"
+            description = "The Icinga error level to raise in case of failure ('not_backed_up' check only)"
+        }
+        "--storage" = {
+            value = "$pve_backups_storage$"
+            description = "The backup storage"
+        }
+        "--node" = {
+            value = "$pve_backups_node$"
+            description = "Filter the VMs running on this Proxmox node"
+        }
+        "--timeout" = {
+            value = "$pve_backups_timeout$"
+            description = "The timeout in seconds"
+        }
+        "--include" = {
+            value = "$pve_backups_include$"
+            description = "List of VM IDs to be checked"
+            repeat_key = true
+        }
+        "--exclude" = {
+            value = "$pve_backups_exclude$"
+            description = "List of VM IDs to be excluded from check"
+            repeat_key = true
+        }
+        "--warning" = {
+            value = "$pve_backups_warning$"
+            description = "Warning threshold in minutes"
+        }
+        "--critical" = {
+            value = "$pve_backups_critical$"
+            description = "Critical threshold in minutes"
+        }
+        "--print-ok" = {
+            set_if = "$pve_backups_print_ok$"
+            description = "Print OK backups (default false)"
+        }
+    }
+
+    vars.pve_backups_host = "$check_address$"
+}
+
 
 #
 # Services
@@ -96,7 +187,7 @@ object CheckCommand "_check_pve" {
 # Generic service assignment
 # Assigned with '_check_pve' host var
 apply Service for (service_name => service_config in host.vars._check_pve) {
-  import "linuxfabrik-service"
+  import "generic-service"
   name = service_name
 
   # Custom icon
@@ -150,7 +241,7 @@ apply Service "Proxmox VE - Updates" {
   enable_notifications = false
 
   vars.pve_mode = "node-updates-available"
-  vars.always_ok_command = "/opt/icinga2-plugins/check_pve.rb"
+  vars.always_ok_command = "{{ icinga2_plugins_dest_dir }}/check_pve.rb"
 
   vars.always_ok_arguments = [ "--mode node-updates-available"]
   vars.always_ok_arguments+= [ "--address " + host.vars.pve.pve_address ]
@@ -434,6 +525,98 @@ apply Service "Proxmox VE - KSM Usage" {
   assign where host.vars.pve
 }
 
+# Generic service assignment
+# Assigned with '_check_pve_backups' host var
+apply Service for (service_name => service_config in host.vars._check_pve_backups) {
+  import "generic-service"
+  name = service_name
+  max_check_attempts = 1
+
+  # Custom icon
+  if (service_config.icon_image) {
+    icon_image = service_config.icon_image
+  } else {
+    icon_image = "pve.png"
+  }
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  } else {
+    check_interval = 1h
+  }
+
+  # Custom retry interval
+  if (service_config.retry_interval) {
+    retry_interval = service_config.retry_interval
+  } else {
+    retry_interval = 15m
+  }
+
+  check_command = "_check_pve_backups"
+  vars += service_config
+}
+
+# Not backed up VMs (automatically assigned when host.vars.pve and
+# host.vars.pve_check_not_backed_up exists)
+apply Service "Proxmox VE - Not backed up VMs" {
+  import "generic-service"
+
+  check_command = "_check_pve_backups"
+  icon_image = "pve.png"
+
+  vars.pve_backups_check = "not_backed_up"
+  vars.pve_backups_host = host.vars.pve["pve_address"]
+  vars.pve_backups_username = host.vars.pve["pve_username"]
+  vars.pve_backups_password = host.vars.pve["pve_password"]
+  vars.pve_backups_node = host.vars.pve["pve_node"]
+  
+  if (host.vars.pve_backups) {
+    vars += host.vars.pve_backups
+  }
+
+  assign where host.vars.pve && host.vars.pve.pve_check_not_backed_up
+}
+
+# Check backups (automatically assigned when host.vars.pve and
+# host.vars.pve_backups exists)
+apply Service "Proxmox VE - VM Backups" {
+  import "generic-service"
+
+  check_command = "_check_pve_backups"
+  icon_image = "pve.png"
+  max_check_attempts = 1
+
+  # Custom check interval
+  if (host.vars.pve_backups["check_interval"]) {
+    check_interval = host.vars.pve_backups["check_interval"]
+  } else {
+    check_interval = 1h
+  }
+
+  # Custom retry interval
+  if (host.vars.pve_backups["retry_interval"]) {
+    retry_interval = host.vars.pve_backups["retry_interval"]
+  } else {
+    retry_interval = 15m
+  }
+
+  vars.pve_backups_check = "backups"
+  vars.pve_backups_host = host.vars.pve["pve_address"]
+  vars.pve_backups_username = host.vars.pve["pve_username"]
+  vars.pve_backups_password = host.vars.pve["pve_password"]
+  vars.pve_backups_node = host.vars.pve["pve_node"]
+  vars.pve_backups_storage = "backup"
+  vars.pve_backups_warning = 1800
+  vars.pve_backups_critical = 3240
+
+  if (host.vars.pve_backups) {
+    vars += host.vars.pve_backups
+  }
+
+  assign where host.vars.pve && host.vars.pve_backups
+}
+
 
 #
 # Groups
@@ -441,13 +624,13 @@ apply Service "Proxmox VE - KSM Usage" {
 
 # Host group
 object HostGroup "pve" {
-    display_name = "Proxmox Hosts"
+    display_name = "Proxmox VE Servers"
     assign where "pve" in keys(host.vars)
 }
 
 # Service group
 object ServiceGroup "pve" {
-  display_name = "PVE Checks"
+  display_name = "Proxmox VE Checks"
 
-  assign where match("_pve", service.check_command)
+  assign where service.check_command in ["_check_pve", "_check_pve_backups"]
 }

@@ -1,10 +1,11 @@
 ---
-- name: Set variables
+- name: (PVE) Set variables
   block:
     - name: Set plugin files
       ansible.builtin.set_fact:
         _plugin_files:
           - "check_pve.rb"
+          - "check_pve_backups.py"
 
     - name: Set icon files
       ansible.builtin.set_fact:
@@ -33,7 +34,7 @@
         index_var: index
       when: not _plugin_files_exists.results[index].stat.exists
 
-- name: Install the PVE check plugin
+- name: Install the PVE check plugins
   when: >
     ansible_system == "Linux"
     and _plugin_should_be_installed
@@ -45,11 +46,20 @@
   block:
     - name: Install plugin dependencies
       ansible.builtin.package:
-        name: ruby
+        name:
+          - ruby
         state: present
       when: ansible_os_family | lower in icinga2_apt_distros
 
-    - name: Copy the check_pve plugin
+    - name: Install required PIP packages
+      ansible.builtin.pip:
+        name:
+          - proxmoxer
+        state: present
+      environment:
+        PIP_BREAK_SYSTEM_PACKAGES: 1
+
+    - name: Copy Proxmox plugins
       ansible.builtin.copy:
         src: "{{ icinga2_plugins_src_dir }}/{{ item }}"
         dest: "{{ icinga2_plugins_dest_dir }}/{{ item }}"
