@@ -57,14 +57,16 @@ apply Service for (service_name => service_config in host.vars.ssh) {
     }
 }
 
-
-
 apply Service for (http_vhost => config in host.vars.http_vhosts) {
   import "generic-service"
 
   check_command = "http"
 
   vars += config
+
+  if (config.remote_check) {
+    command_endpoint = host.vars.client_endpoint
+  }
 }
 
 apply Service for (disk => config in host.vars.disks) {
@@ -77,6 +79,8 @@ apply Service for (disk => config in host.vars.disks) {
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 apply Service "Icinga" {
@@ -92,11 +96,6 @@ apply Service "System Load" {
 
   check_command = "load"
 
-  /* Used by the ScheduledDowntime apply rule in `downtimes.conf`. */
-  /* vars.backup_downtime = "02:00-03:00" */
-
-  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.vm_type != "lxc" && host.vars.check_load != false && !host.vars.nrpe
-
   # vars.notifications_disable = true
   max_check_attempts = 120
   retry_interval = 1m
@@ -104,6 +103,11 @@ apply Service "System Load" {
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD")
+  ignore where host.vars.check_load == false
+  ignore where host.vars.vm_type == "lxc"
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 apply Service "Running Processes" {
@@ -111,11 +115,12 @@ apply Service "Running Processes" {
 
   check_command = "procs"
 
-  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.distro != "Proxmox" && !host.vars.nrpe
-
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.distro != "Proxmox" && !host.vars.nrpe
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 apply Service "Swap" {
@@ -123,14 +128,15 @@ apply Service "Swap" {
 
   check_command = "swap"
 
-  assign where host.vars.check_swap != false && (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.vm_type != "lxc" && !host.vars.nrpe
-
   max_check_attempts = 120
   retry_interval = 1m
 
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  assign where host.vars.check_swap != false && (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.vm_type != "lxc" && !host.vars.nrpe
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 apply Service "Logged Users" {
@@ -138,11 +144,12 @@ apply Service "Logged Users" {
 
   check_command = "users"
 
-  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && !host.vars.nrpe
-
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && !host.vars.nrpe
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 apply Service for (ftp => config in host.vars.ftp) {
@@ -175,13 +182,18 @@ apply Service for (procs => config in host.vars.procs) {
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 apply Service "Cron Daemon" {
   import "generic-service"
   check_command = "procs"
 
-  if (host.vars.distro == "CentOS" || host.vars.distro == "Redhat") {
+  if (host.vars.distro == "CentOS"
+        || host.vars.distro == "Redhat"
+        || host.vars.distribution_file_variety == "RedHat"
+  ) {
     vars.procs_command = "crond"
   } else {
     vars.procs_command = "cron"
@@ -193,7 +205,8 @@ apply Service "Cron Daemon" {
     command_endpoint = host.vars.client_endpoint
   }
 
-  assign where host.vars.os == "Linux" && host.vars.check_cron != false
+  assign where host.vars.os == "Linux"
+  ignore where host.vars.check_cron == false
 }
 
 apply Service "Rsyslog Daemon" {
@@ -221,7 +234,8 @@ apply Service "SNMP Daemon" {
     command_endpoint = host.vars.client_endpoint
   }
 
-  assign where host.vars.os == "Linux" && host.vars.check_snmpd != false
+  assign where host.vars.os == "Linux"
+  ignore where host.vars.check_snmpd == false
 }
 
 apply Service for (mysql => config in host.vars.mysql) {
@@ -237,11 +251,11 @@ apply Service "APT Packages Updates" {
 
   enable_notifications = false
 
-  assign where host.vars.distro == "Debian" || host.vars.distro == "Proxmox" || host.vars.distro == "Ubuntu"
-
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  assign where host.vars.distro == "Debian" || host.vars.distro == "Proxmox" || host.vars.distro == "Ubuntu"
 }
 
 apply Service for (dns => config in host.vars.dns) {
@@ -255,21 +269,19 @@ apply Service "DNS Resolution" {
 
   check_command = "dns"
 
-  assign where host.vars.os == "Linux"
-
   vars.dns_lookup = "www.google.com"
 
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  assign where host.vars.os == "Linux"
 }
 
 apply Service "Local date/time" {
   import "generic-service"
 
   check_command = "ntp_time"
-
-  assign where host.vars.os == "Linux"
 
   vars.ntp_address = "ntp.ien.it"
   vars.ntp_warning = "0.5"
@@ -278,6 +290,8 @@ apply Service "Local date/time" {
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
+
+  assign where host.vars.os == "Linux"
 }
 
 # Ping a remote host (applied with the 'ping' host var)
@@ -287,7 +301,6 @@ apply Service for (service_name => service_config in host.vars.ping) {
   check_command = "ping4"
 
   vars += service_config
-
 
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
