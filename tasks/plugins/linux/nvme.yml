@@ -12,7 +12,7 @@
   when: >
     ansible_system == "Linux" and
     plugin_command.stat.exists and
-    icinga2_client_vars.nvme is defined
+    (icinga2_client_vars.nvme is defined or 'nvme' in icinga2_plugins_enabled)
   block:
     - name: Install plugin dependencies
       ansible.builtin.package:
@@ -46,4 +46,5 @@
   notify: Reload Icinga2
   when: >
     icinga2_client_vars.nvme is defined
+    or 'nvme' in icinga2_plugins_enabled
     or ansible_fqdn == icinga2_master_inventory_hostname

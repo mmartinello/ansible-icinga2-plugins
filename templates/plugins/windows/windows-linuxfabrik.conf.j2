@@ -27,7 +27,7 @@ apply Service "CPU Usage" {
   check_command = "_win_linuxfabrik_cpu_usage"
   icon_image = "cpu-usage.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Disk IO
@@ -38,7 +38,7 @@ apply Service "Disk IO" {
   check_command = "_win_linuxfabrik_disk_io"
   icon_image = "disk-io.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Disk SMART
@@ -50,7 +50,7 @@ apply Service "Disk SMART" {
   check_interval = 8h
   icon_image = "disk-smart.png"
 
-  assign where host.vars.disk_smart_enabled
+  assign where host.vars.os == "Windows" && host.vars.disk_smart_enabled
 }
 
 # Disk Usage
@@ -62,7 +62,7 @@ apply Service "Disk Usage" {
   check_interval = 5m
   icon_image = "disk-usage.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # DNS Lookup
@@ -74,7 +74,7 @@ apply Service "DNS Lookup" {
   check_interval = 15m
   icon_image = "dns.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # File Age
@@ -101,7 +101,7 @@ apply Service for (service_name => service_config in host.vars.file_age) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # File Count
@@ -128,7 +128,7 @@ apply Service for (service_name => service_config in host.vars.file_count) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # File Size
@@ -155,7 +155,7 @@ apply Service for (service_name => service_config in host.vars.file_size) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # HAProxy Status
@@ -169,7 +169,7 @@ apply Service for (service_name => service_config in host.vars.haproxy) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Check json-values
@@ -196,7 +196,7 @@ apply Service for (service_name => service_config in host.vars.json) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Check LibreNMS Alerts
@@ -223,7 +223,7 @@ apply Service for (service_name => service_config in host.vars.librenms) {
 
   vars += service_config
 
-  assign where service_config.librenms_url && service_config.librenms_token
+  assign where host.vars.os == "Windows" && service_config.librenms_url && service_config.librenms_token
 }
 
 # Check LibreNMS Health
@@ -250,7 +250,7 @@ apply Service for (service_name => service_config in host.vars.librenms) {
 
   vars += service_config
 
-  assign where service_config.librenms_url && service_config.librenms_token
+  assign where host.vars.os == "Windows" && service_config.librenms_url && service_config.librenms_token
 }
 
 # Check LibreNMS Version
@@ -277,7 +277,7 @@ apply Service for (service_name => service_config in host.vars.librenms) {
 
   vars += service_config
 
-  assign where service_config.librenms_url && service_config.librenms_token
+  assign where host.vars.os == "Windows" && service_config.librenms_url && service_config.librenms_token
 }
 
 # Check logfile
@@ -296,7 +296,7 @@ apply Service for (service_name => service_config in host.vars.logfile) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Memory Usage
@@ -307,7 +307,7 @@ apply Service "Memory Usage" {
   check_command = "_win_linuxfabrik_memory_usage"
   icon_image = "memory-usage.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Network Connections
@@ -318,7 +318,19 @@ apply Service "Network Connections" {
   check_command = "_win_linuxfabrik_network_connections"
   icon_image = "network-connections.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
+}
+
+# Network IO
+# Assigned on every Windows host with host.vars.network_io != false
+apply Service "Network IO" {
+  import "win-linuxfabrik-service"
+
+  check_command = "_win_linuxfabrik_network_io"
+  icon_image = "network-io.png"
+
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
+  ignore where host.vars.network_io == false
 }
 
 # Network Port TCP
@@ -332,7 +344,7 @@ apply Service for (service_name => service_config in host.vars.network_port_tcp)
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Nginx Status
@@ -346,7 +358,7 @@ apply Service for (service_name => service_config in host.vars.nginx) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && service_config.nginx_stats_enabled
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed && service_config.nginx_stats_enabled
 }
 
 # Check path-rw-test
@@ -365,7 +377,7 @@ apply Service for (service_name => service_config in host.vars.path_rw_test) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Check PIP Updates
@@ -386,7 +398,7 @@ apply Service for (service_name => service_config in host.vars.pip_updates) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Check Procs
@@ -400,7 +412,7 @@ apply Service for (service_name => service_config in host.vars.procs) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Scheduled Task
@@ -425,7 +437,7 @@ apply Service for (service_name => service_config in host.vars.scheduled_task) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Check Service
@@ -450,7 +462,7 @@ apply Service for (service_name => service_config in host.vars.service) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Swap Usage
@@ -461,7 +473,7 @@ apply Service "Swap Usage" {
   check_command = "_win_linuxfabrik_swap_usage"
   icon_image = "swap-usage.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows" && host.vars.swap
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.swap
 }
 
 # System Updates
@@ -472,7 +484,7 @@ apply Service "System Updates" {
   check_command = "_win_linuxfabrik_updates"
   icon_image = "updates.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows" && host.vars.linuxfabrik_updates
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.linuxfabrik_updates
 }
 
 # System Uptime
@@ -485,7 +497,7 @@ apply Service "System Uptime" {
 
   vars.linuxfabrik_uptime_always_ok = true
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Connected Users
@@ -496,7 +508,7 @@ apply Service "Connected Users" {
   check_command = "_win_linuxfabrik_users"
   icon_image = "users.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows"
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
 # Veeam Status
@@ -507,7 +519,7 @@ apply Service "Connected Users" {
   check_command = "_win_linuxfabrik_veeam_status"
   icon_image = "veeam_status.png"
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Windows" && host.vars.veeam_status
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.veeam_status
 }
 
 # XML
@@ -534,5 +546,5 @@ apply Service for (service_name => service_config in host.vars.xml) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Windows" && host.vars.linuxfabrik_monitoring_plugins_installed
 }
