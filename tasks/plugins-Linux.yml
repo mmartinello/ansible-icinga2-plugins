@@ -23,8 +23,8 @@
 # Plugin list
 
 # Builtin plugins
-- name: Install Icinga builtin plugins
-  ansible.builtin.include_tasks: plugins/linux/icinga-builtin.yml
+- name: Install Linux builtin plugins
+  ansible.builtin.include_tasks: plugins/linux/linux-builtin.yml
 
 # Generic plugins
 - name: Install generic Linux plugins
