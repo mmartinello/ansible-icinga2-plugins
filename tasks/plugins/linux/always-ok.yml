@@ -2,7 +2,7 @@
 - name: Copy the Always OK plugin
   ansible.builtin.copy:
     src: files/plugins/always-ok.sh
-    dest: "{{ icinga2_plugins_dest_dir }}/always-ok.sh"
+    dest: "{{ icinga2_plugins_dest_dir }}/always-ok"
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"
     mode: '0750'
