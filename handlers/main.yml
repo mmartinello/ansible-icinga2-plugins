@@ -1,22 +1,22 @@
 ---
 - name: Restart Icinga2
-  service:
+  ansible.builtin.service:
     name: icinga2
     state: restarted
 
 - name: Reload Icinga2
-  service:
+  ansible.builtin.service:
     name: icinga2
     state: reloaded
 
 - name: Reload Icinga2 on master server
-  service:
+  ansible.builtin.service:
     name: icinga2
     state: reloaded
   delegate_to: "{{ icinga2_master_inventory_hostname }}"
   become: true
 
 - name: Restart Icinga2 on Windows
-  win_service:
+  ansible.windows.win_service:
     name: icinga2
     state: restarted
