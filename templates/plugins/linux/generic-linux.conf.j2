@@ -606,11 +606,9 @@ object CheckCommand "_check_kernel" {
 
 apply Service "Running Kernel" {
   import "generic-service"
-
   check_command = "_check_kernel"
-
   enable_notifications = false
-
+  check_interval = 1d
   assign where host.vars.os == "Linux" && host.vars.check_kernel != false && host.vars.vm_type != "lxc" && host.vars.vm_type != "openvz"
 
   if (host.vars.client_endpoint) {
