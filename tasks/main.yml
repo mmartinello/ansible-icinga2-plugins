@@ -27,3 +27,7 @@
 - name: Install icons
   ansible.builtin.import_tasks: icons.yml
   when: icinga2_plugins_icons_install
+
+# Auto configuration
+- name: Push plugins auto configuration on Icinga2 master server
+  ansible.builtin.import_tasks: autoconf.yml

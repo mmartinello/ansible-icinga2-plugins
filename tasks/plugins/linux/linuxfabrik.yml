@@ -4,6 +4,11 @@
     icinga2_plugins_linuxfabrik
     or ansible_fqdn == icinga2_master_inventory_hostname
   block:
+    - name: Set variables
+      ansible.builtin.set_fact:
+        _plugin_name: linuxfabrik
+        _plugin_auto_conf_elements: {}
+
     - name: Install Linuxfabrik Monitoring Plugins
       ansible.builtin.import_role:
         name: mmartinello.linuxfabrik-monitoring-plugins
@@ -19,6 +24,34 @@
         src: "templates/plugins/linux/linuxfabrik.conf.j2"
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/linuxfabrik-services.conf"
         owner: "{{ icinga2_user }}"
-        group: "{{ icinga2_group }}"
         mode: '0640'
+        group: "{{ icinga2_group }}"
       notify: Reload Icinga2
+
+    - name: Plugin auto configuration
+      when: >
+        (icinga2_plugins_auto_conf_enable and _plugin_name not in icinga2_plugins_auto_conf_disabled_plugins)
+        or (not icinga2_plugins_auto_conf_enable and _plugin_name in icinga2_plugins_auto_conf_disabled_plugins)
+      block:
+        - name: Network bonding - Check if any bonding interfaces is present
+          ansible.builtin.find:
+            paths: /proc/net/bonding/
+            file_type: file
+          register: _files_found
+
+        - name: Add the network_bonding variable if bonding interfaces exist
+          ansible.builtin.set_fact:
+            _plugin_auto_conf_elements: "{{ _plugin_auto_conf_elements | combine(item) }}"
+          with_items:
+            - { 'network_bonding': true }
+          when: _files_found.matched > 0
+
+        - name: Compile the auto conf element
+          ansible.builtin.set_fact:
+            _plugin_auto_conf_element:
+              - key: "{{ _plugin_name }}"
+                value: "{{ _plugin_auto_conf_elements }}"
+
+        - name: Add the auto configuration element to the main auto configuration variable
+          ansible.builtin.set_fact:
+            icinga2_plugins_auto_conf_elements: "{{ icinga2_plugins_auto_conf_elements | combine(_plugin_auto_conf_element | items2dict) }}"

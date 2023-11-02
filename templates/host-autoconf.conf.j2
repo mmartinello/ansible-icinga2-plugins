@@ -1,0 +1,63 @@
+# {{ ansible_managed }}
+
+###############################################################################
+# Auto configured host variables
+# These host variables are automatically configured by the
+# mmartinello.icinga2-plugins Ansible role.
+#
+# Don't change them manually: changes will be rewritten at the next run!
+#
+# Instead, if you want to manually configure a plugin, you should disable the
+# automatic configuration setting 'icinga2_plugins_auto_conf_enable: false'
+# or disable automatic configuration for the specific plugin package adding the
+# name of the plugin package into the
+# 'icinga2_plugins_auto_conf_disabled_plugins' list into the Ansible project.
+
+{% set _elements = icinga2_plugins_auto_conf_elements | default({}) %}
+{% for plugin_name, plugin_auto_conf_elements in _elements.items() %}
+###############################################################################
+# Plugin: {{ plugin_name }}
+
+{% set _host_vars = plugin_auto_conf_elements | default({}) %}
+{% for var_group_name, var_group_content in _host_vars.items() %}
+{% if var_group_content is mapping %}
+{% for var_name, var_content in var_group_content.items() %}
+{% if var_content is mapping %}
+vars.{{ var_group_name }}["{{ var_name }}"] = {
+{% for param_name, param_value in var_content.items() %}
+{% if param_value == false or param_value == true %}
+  {{ param_name }} = {{ param_value | lower }}
+{% elif param_value is number %}
+  {{ param_name }} = {{ param_value }}
+{% else %}
+  {{ param_name }} = "{{ param_value }}"
+{% endif %}
+{% endfor %}
+}
+{% else %}
+{% if var_content == false or var_content == true %}
+vars.{{ var_group_name }}["{{ var_name }}"] = {{ var_content | lower }}
+{% elif var_content is number %}
+vars.{{ var_group_name }}["{{ var_name }}"] = {{ var_content }}
+{% else %}
+vars.{{ var_group_name }}["{{ var_name }}"] = "{{ var_content }}"
+{% endif %}
+{% endif %}
+{% endfor %}
+{% else %}
+{% if var_group_content == false or var_group_content == true %}
+vars.{{ var_group_name }} = {{ var_group_content | lower }}
+{% elif var_group_content is number %}
+vars.{{ var_group_name }} = {{ var_group_content }}
+{% else %}
+vars.{{ var_group_name }} = "{{ var_group_content }}"
+{% endif %}
+{% endif %}
+
+{%- endfor %}
+
+
+{% endfor %}
+
+# End Host Variables
+###############################################################################

@@ -30,7 +30,42 @@ icinga2_config_root_dir: /etc/icinga2
 icinga2_services_dir: services.d
 icinga2_constants_config_file: constants.conf
 icinga2_force_reload: false
-icinga2_master_inventory_hostname:
+
+
+###############################################################################
+# Icinga 2 master server settings
+
+icinga2_master_inventory_hostname: icinga.master.server
+icinga2_master_user: nagios
+icinga2_master_group: nagios
+
+
+###############################################################################
+# Plugins auto configuration
+
+# Enable the auto configuration for every plugin which support it
+icinga2_plugins_auto_conf_enable: true
+
+# Plugins for which auto configuration is disabled (list of plugin names)
+# (useful when icinga2_plugins_auto_conf_enable=true)
+icinga2_plugins_auto_conf_disabled_plugins: []
+
+# Plugins for which auto configuration is enabled (list of plugin names)
+# (useful when icinga2_plugins_auto_conf_enable=false)
+icinga2_plugins_auto_conf_enabled_plugins: []
+
+# Directory where to save the auto configuration file for the specific client
+icinga2_plugins_auto_conf_dir: /etc/icinga2/auto-conf.d
+
+# File where to write the auto configuration variables for the specific client
+icinga2_plugins_auto_conf_file: "{{ icinga2_plugins_auto_conf_dir }}/{{ inventory_hostname }}.conf"
+
+# Auto configuration variables (keep empty, will be automatically filled)
+icinga2_plugins_auto_conf_elements: {}
+
+
+###############################################################################
+# Specific plugins settings
 
 # Harisekhon plugins
 icinga2_plugins_harisekhon: false

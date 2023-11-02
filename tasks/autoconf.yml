@@ -1,0 +1,21 @@
+---
+- name: Create the auto configuration directory on master server
+  ansible.builtin.file:
+    path: "{{ icinga2_plugins_auto_conf_dir }}"
+    state: directory
+    owner: "{{ icinga2_master_user }}"
+    group: "{{ icinga2_master_group }}"
+    mode: '0750'
+  delegate_to: "{{ icinga2_master_inventory_hostname }}"
+  become: true
+
+- name: Create the additional host var file if not exists
+  ansible.builtin.template:
+    src: host-autoconf.conf.j2
+    dest: "{{ icinga2_plugins_auto_conf_file }}"
+    owner: "{{ icinga2_master_user }}"
+    group: "{{ icinga2_master_group }}"
+    mode: '0640'
+  delegate_to: "{{ icinga2_master_inventory_hostname }}"
+  become: true
+  notify: Reload Icinga2 on master server
