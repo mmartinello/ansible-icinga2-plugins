@@ -935,17 +935,6 @@ apply Service "Systemd Units Failed" {
   assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.systemd
 }
 
-# Top 3 Processes Which Caused The Most IO
-# Assigned on every Linux host
-apply Service "Top 3 Processes Which Caused The Most IO" {
-  import "linuxfabrik-service"
-
-  check_command = "_linuxfabrik_top3_processes_which_caused_the_most_io"
-  icon_image = "linuxfabrik/top3-processes-which-caused-the-most-io.png"
-
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
-}
-
 # System Uptime
 # Assigned on every Linux host and host.vars.linuxfabrik_uptime
 apply Service "System Uptime" {
