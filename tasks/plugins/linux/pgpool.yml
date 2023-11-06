@@ -1,0 +1,45 @@
+---
+- name: Check if the PgPool should be installed
+  block:
+    - name: Check if the plugin command is available
+      ansible.builtin.stat:
+        path: "{{ icinga2_plugins_src_dir }}/check_pgpool-II.pl"
+      delegate_to: localhost
+      register: plugin_command
+      become: false
+
+- name: Install the PgPool check plugin
+  when: >
+    ansible_system == "Linux" and
+    plugin_command.stat.exists and
+    (icinga2_client_vars.nvme is defined or 'nvme' in icinga2_plugins_enabled)
+  block:
+    - name: Copy the PgPool plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_pgpool-II.pl"
+        dest: "{{ icinga2_plugins_dest_dir }}/ccheck_pgpool-II.pl"
+        owner: postgres
+        group: postgres
+        mode: '0750'
+
+    - name: Configure sudo
+      ansible.builtin.template:
+        src: sudoers.d/pgpool.j2
+        dest: /etc/sudoers.d/icinga2-pgpool
+        owner: root
+        group: root
+        mode: '0440'
+
+- name: Copy the services definition file
+  ansible.builtin.template:
+    src: plugins/linux/pgpool.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/pgpool.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Reload Icinga2
+  when: >
+    icinga2_client_vars.pgpool2 is defined
+    or icinga2_client_vars.pgpool is defined
+    or 'pgpool' in icinga2_plugins_enabled
+    or ansible_fqdn == icinga2_master_inventory_hostname

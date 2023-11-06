@@ -1,0 +1,158 @@
+# {{ ansible_managed }}
+
+###############################################################################
+# PgPool-II checks
+
+
+###############################################################################
+# Groups
+
+/*
+Commands && services for PgPool-II checks:
+  - PgPool-II pool check (https://github.com/labynocle/nagios_plugins/tree/master/check_pgpool-II)
+  - TCP builtin check for PCP and Watchdog port
+  - Custom PostgreSQL check (_postgresql) for connection check
+
+  Custom additional variables:
+    - pcp_port (integer): PCP port number
+    - pcp_port_check_remote (boolean): enable the remote execution for PCP port check (default: disabled)
+    - watchdog_port (integer): Watchdog port number
+    - watchdog_port_check_remote (boolean): enable the remote execution for Watchdog port check (default: disabled)
+    - port (integer): port to be used for service connection check
+    - user (string): username to be used for service connection check
+    - password (string): password to be used for service connection check
+    - remote_check (boolean): enable the remote execution for service connection check (default: disabled)
+*/
+
+# PgPool-II pool check (https://github.com/labynocle/nagios_plugins/tree/master/check_pgpool-II)
+# Command to check the PgPool-II pool status
+object CheckCommand "_pgpool2_pool_status" {
+        import "ipv4-or-ipv6"
+
+        command = [ "sudo", "-u", "postgres", "{{ icinga2_plugins_dest_dir }}/check_pgpool-II.pl" ]
+
+        arguments = {
+                "--display" = {
+                        value = "$pgpool2_display$"
+                        description = "To modify the output display (default: 'CHECK_PGPOOL-II - ')"
+                }
+                "--perfdata" = {
+                        set_if = "$pgpool2_perfdata$"
+                        description = "If you want to activate the perfdata output"
+                }
+                "--verbose" = {
+                        set_if = "$pgpool2_verbose$"
+                        description = "Show details for command-line debugging (Nagios may truncate the output)"
+                }
+                "--critical" = {
+                        value = "$pgpool2_critical$"
+                        description = "Specify a critical threshold of backend in down state (default: 2)"
+                }
+                "--warning" = {
+                        value = "$pgpool2_warning$"
+                        description = "Specify a warning threshold of backend in down state (default: 1)"
+                }
+                "--backends" = {
+                        value = "$pgpool2_backends$"
+                        description = "Specify the number of waiting backends (default: 0)"
+                }
+                "--pcp-dir" = {
+                        value = "$pgpool2_pcp_dir$"
+                        description = "Specify the path to pcp commands binaries directory (default: empty)"
+                }
+                "--host" = {
+                        value = "$pgpool2_host$"
+                        description = "Specify the pgpool-II hostname (default: localhost)"
+                }
+                "--port" = {
+                        value = "$pgpool2_port$"
+                        description = "Specify the PCP port (default: 9898)"
+                }
+                "--user" = {
+                        value = "$pgpool2_user$"
+                        description = "Specify the username for PCP authentication"
+                }
+        }
+
+        vars.pgpool2_host = "$check_address$"
+        vars.pgpool2_display = "PGPOOL-II POOL STATUS: "
+        vars.pgpool2_perfdata = true
+}
+
+
+###############################################################################
+# Services
+
+apply Service for (service_name => service_config in host.vars.pgpool2) {
+        import "generic-service"
+        name = service_name + " - Pool Status"
+        check_command = "_pgpool2_pool_status"
+
+        # Execute command on the remote host
+        if (host.vars.client_endpoint) {
+                command_endpoint = host.vars.client_endpoint
+        }
+
+        vars += service_config
+}
+
+apply Service for (service_name => service_config in host.vars.pgpool2) {
+        import "generic-service"
+        name = service_name + " - PCP Port"
+        check_command = "tcp"
+        vars.tcp_port = service_config.pcp_port
+
+        # Execute command on the remote host
+        if (service_config.pcp_port_check_remote) {
+                command_endpoint = host.vars.client_endpoint
+        }
+
+        # Assign if 'pcp_port' host var is assigned
+        assign where service_config.pcp_port
+}
+
+apply Service for (service_name => service_config in host.vars.pgpool2) {
+        import "generic-service"
+        name = service_name + " - Watchdog Port"
+        check_command = "tcp"
+        vars.tcp_port = service_config.watchdog_port
+
+        # Execute command on the remote host
+        if (service_config.watchdog_port_check_remote) {
+                command_endpoint = host.vars.client_endpoint
+        }
+
+        # Assign if 'watchdog_port' host var is assigned
+        assign where service_config.watchdog_port
+}
+
+apply Service for (service_name => service_config in host.vars.pgpool2) {
+        import "generic-service"
+        name = service_name + " - Connection Port"
+        check_command = "_postgres"
+        vars.postgres_port = service_config.port
+        vars.postgres_user = service_config.user
+        vars.postgres_password = service_config.password
+
+        # Execute command on the remote host
+        if (service_config.remote_check) {
+                command_endpoint = host.vars.client_endpoint
+        }
+}
+
+
+###############################################################################
+# Groups
+
+# Host group
+object HostGroup "pgpool-servers" {
+    display_name = "PgPool-II Servers"
+    assign where "pgpool2" in keys(host.vars) || "pgpool" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "pgpool" {
+  display_name = "PgPool-II Services"
+
+  assign where match("pgpool2", service.check_command) || match("pgpool", service.check_command)
+}

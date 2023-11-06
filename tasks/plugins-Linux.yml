@@ -7,7 +7,7 @@
     path: "{{ icinga2_plugins_dest_dir }}"
     state: directory
     recurse: true
-    mode: '0750'
+    mode: '0755'
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"
 
@@ -81,3 +81,7 @@
 # ZFS plugins
 - name: Install ZFS plugins
   ansible.builtin.include_tasks: plugins/linux/zfs.yml
+
+# PgPool plugins
+- name: Install ZFS plugins
+  ansible.builtin.include_tasks: plugins/linux/pgpool.yml
