@@ -42,7 +42,7 @@ apply Service "SSH" {
 
   check_command = "ssh"
 
-  assign where (host.address || host.address6) && (host.vars.os == "Linux" || host.vars.os == "FreeBSD")
+  assign where (host.address || host.address6) && host.vars.os == "Linux"
 }
 
 # check_ssh service definition (applied with host.vars.ssh)
@@ -104,7 +104,7 @@ apply Service "System Load" {
     command_endpoint = host.vars.client_endpoint
   }
 
-  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD")
+  assign where host.vars.os == "Linux"
   ignore where host.vars.check_load == false
   ignore where host.vars.vm_type == "lxc"
   ignore where host.vars.linuxfabrik_monitoring_plugins_installed
@@ -119,7 +119,9 @@ apply Service "Running Processes" {
     command_endpoint = host.vars.client_endpoint
   }
 
-  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.distro != "Proxmox" && !host.vars.nrpe
+  assign where host.vars.os == "Linux"
+  ignore where host.vars.distro == "Proxmox"
+  ignore where host.vars.nrpe
   ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
@@ -135,7 +137,10 @@ apply Service "Swap" {
     command_endpoint = host.vars.client_endpoint
   }
 
-  assign where host.vars.check_swap != false && (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && host.vars.vm_type != "lxc" && !host.vars.nrpe
+  assign where host.vars.os == "Linux"
+  ignore where host.vars.check_swap == false
+  ignore where host.vars.vm_type == "lxc"
+  ignore where host.vars.nrpe
   ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
@@ -148,7 +153,8 @@ apply Service "Logged Users" {
     command_endpoint = host.vars.client_endpoint
   }
 
-  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && !host.vars.nrpe
+  assign where host.vars.os == "Linux"
+  ignore where host.vars.nrpe
   ignore where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 

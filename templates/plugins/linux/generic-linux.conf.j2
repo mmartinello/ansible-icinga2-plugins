@@ -21,7 +21,7 @@ apply Service "System Uptime" {
 
   check_command = "_uptime"
 
-  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && !host.vars.nrpe
+  assign where host.vars.os == "Linux" && !host.vars.nrpe
 
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
@@ -29,7 +29,7 @@ apply Service "System Uptime" {
 }
 
 ###############################################################################
-# System memory: Linux and FreeBSD hosts without NRPE
+# System memory: applied on every Linux hosts without NRPE
 
 object CheckCommand "_memory" {
         command = [ PluginDir + "/check_memory" ]
@@ -88,7 +88,7 @@ apply Service "System Memory" {
   # check_command = "_memory"
   check_command = "_check_mem"
 
-  assign where (host.vars.os == "Linux" || host.vars.os == "FreeBSD") && !host.vars.nrpe && !host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.os == "Linux" && !host.vars.nrpe && !host.vars.linuxfabrik_monitoring_plugins_installed
 
   max_check_attempts = 120
   retry_interval = 1m
