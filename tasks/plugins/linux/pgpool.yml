@@ -12,7 +12,7 @@
   when: >
     ansible_system == "Linux" and
     plugin_command.stat.exists and
-    (icinga2_client_vars.nvme is defined or 'nvme' in icinga2_plugins_enabled)
+    (icinga2_client_vars.pgpool2 is defined or 'pgpool2' in icinga2_plugins_enabled or icinga2_client_vars.pgpool is defined or 'pgpool' in icinga2_plugins_enabled)
   block:
     - name: Copy the PgPool plugin
       ansible.builtin.copy:
