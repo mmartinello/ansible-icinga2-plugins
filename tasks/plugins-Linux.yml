@@ -22,6 +22,10 @@
 ###############################################################################
 # Plugin list
 
+# Always OK
+- name: Install Always OK plugin
+  ansible.builtin.include_tasks: plugins/linux/always-ok.yml
+
 # Builtin plugins
 - name: Install Linux builtin plugins
   ansible.builtin.include_tasks: plugins/linux/linux-builtin.yml
@@ -29,10 +33,6 @@
 # Generic plugins
 - name: Install generic Linux plugins
   ansible.builtin.include_tasks: plugins/linux/generic-linux.yml
-
-# Always OK
-- name: Install Always OK plugin
-  ansible.builtin.include_tasks: plugins/linux/always-ok.yml
 
 # Harisekhon Plugins on master node
 - name: Install Harisekhon plugins
@@ -58,6 +58,10 @@
 - name: Install NVMe plugins
   ansible.builtin.include_tasks: plugins/linux/nvme.yml
 
+# PgPool plugins
+- name: Install ZFS plugins
+  ansible.builtin.include_tasks: plugins/linux/pgpool.yml
+
 # PostgreSQL plugins
 - name: Install PostgreSQL plugins
   ansible.builtin.include_tasks: plugins/linux/postgres.yml
@@ -81,7 +85,3 @@
 # ZFS plugins
 - name: Install ZFS plugins
   ansible.builtin.include_tasks: plugins/linux/zfs.yml
-
-# PgPool plugins
-- name: Install ZFS plugins
-  ansible.builtin.include_tasks: plugins/linux/pgpool.yml
