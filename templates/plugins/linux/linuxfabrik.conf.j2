@@ -63,6 +63,9 @@ apply Service "Disk SMART" {
   icon_image = "linuxfabrik/disk-smart.png"
 
   assign where host.vars.disk_smart_enabled
+  assign where host.vars.virtualization_role == "host"
+  assign where host.vars.virtualization_role == "NA"
+  ignore where host.vars.disk_smart_enabled == false
 }
 
 # Disk Usage
