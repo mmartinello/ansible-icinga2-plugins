@@ -915,6 +915,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Cluster disk balance"
   check_command = "_hk_check_elasticsearch_cluster_disk_balance"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -924,6 +925,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Cluster shards balance"
   check_command = "_hk_check_elasticsearch_cluster_shard_balance"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -933,6 +935,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Cluster shards"
   check_command = "_hk_check_elasticsearch_cluster_shards"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -942,6 +945,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Cluster stats"
   check_command = "_hk_check_elasticsearch_cluster_stats"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -951,6 +955,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Cluster status nodes shards"
   check_command = "_hk_check_elasticsearch_cluster_status_nodes_shards"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -960,6 +965,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Data nodes"
   check_command = "_hk_check_elasticsearch_data_nodes"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -969,6 +975,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Documents count"
   check_command = "_hk_check_elasticsearch_doc_count"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -978,6 +985,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Master node"
   check_command = "_hk_check_elasticsearch_master_node"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -987,6 +995,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Node disk percent"
   check_command = "_hk_check_elasticsearch_node_disk_percent"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -996,6 +1005,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Nodes"
   check_command = "_hk_check_elasticsearch_nodes"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -1005,6 +1015,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Shards state detail"
   check_command = "_hk_check_elasticsearch_shards_state_detail"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -1014,6 +1025,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Tasks pending"
   check_command = "_hk_check_elasticsearch_tasks_pending"
+  enable_notifications = false
 
   vars += service_config
 }
@@ -1023,6 +1035,7 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   import "generic-service"
   name = service_name + " - Tasks slow"
   check_command = "_hk_check_elasticsearch_tasks_slow"
+  enable_notifications = false
 
   vars += service_config
 }
