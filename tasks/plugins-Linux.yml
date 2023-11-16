@@ -62,6 +62,10 @@
 - name: Install ZFS plugins
   ansible.builtin.include_tasks: plugins/linux/pgpool.yml
 
+# pfSense plugins
+- name: Install pfSense plugins
+  ansible.builtin.include_tasks: plugins/linux/pfsense.yml
+
 # PostgreSQL plugins
 - name: Install PostgreSQL plugins
   ansible.builtin.include_tasks: plugins/linux/postgres.yml
