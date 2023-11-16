@@ -1,0 +1,742 @@
+# {{ ansible_managed }}
+
+/******************************************************************************
+* Commands and services for pfSense checks:
+*  - pfsense-nagios-checks
+*    (https://github.com/oneoffdallas/pfsense-nagios-checks)
+*
+* These checks use 'by_ssh' command to run commands through SSH.
+*/
+
+
+###############################################################################
+# Services
+
+# Service template
+template Service "pfsense-service" {
+  import "generic-service"
+
+  check_interval = 1m
+  max_check_attempts = 5
+  retry_interval = 30s
+}
+
+# Service template
+template Service "pfsense-ssh-service" {
+  import "pfsense-service"
+
+  # SSH port: host.vars.pfsense.ssh_port
+  vars.by_ssh_port = host.vars.pfsense.ssh_port ? host.vars.pfsense.ssh_port : 22
+
+  # SSH login user: host.vars.pfsense.ssh_login_user
+  vars.by_ssh_logname = host.vars.pfsense.ssh_login_user ? host.vars.pfsense.ssh_login_user : "icinga"
+
+  # SSH identity file: host.vars.pfsense.ssh_identity_file
+  vars.by_ssh_identity = host.vars.pfsense.ssh_identity_file
+}
+
+# Check / disk free space
+apply Service "Disk: / Free space" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_disk" ]
+  vars.by_ssh_arguments = {
+    "-w" = host.vars.pfsense.disk_wfree ? host.vars.pfsense.disk_wfree : "20%",
+    "-c" = host.vars.pfsense.disk_cfree ? host.vars.pfsense.disk_cfree : "10%",
+    "-p" = "/"
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+# Check /var/run disk free space
+apply Service "Disk: /var/run Free space" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_disk" ]
+  vars.by_ssh_arguments = {
+    "-w" = host.vars.pfsense.disk_wfree ? host.vars.pfsense.disk_wfree : "20%",
+    "-c" = host.vars.pfsense.disk_cfree ? host.vars.pfsense.disk_cfree : "10%",
+    "-p" = "/"
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Check Web interface (HTTP)
+ * Always enabled, can be disabled with host.vars.pfsense.http_enabled = false
+ *
+ * Variables:
+ * - host.vars.pfsense.http_enabled (boolean): enable/disable this check (default: true)
+ */
+apply Service "Web Interface (HTTP)" {
+  import "pfsense-service"
+
+  check_command = "http"
+  vars.http_port = 80
+
+  assign where host.vars.distribution == "pfSense" && host.vars.pfsense.http_enabled != false
+}
+
+/*
+ * Check Web interface (HTTPS)
+ * Always enabled
+ *
+ * Variables:
+ * - host.vars.pfsense.https_port (integer): the HTTPS port (default: 443)
+ */
+apply Service "Web Interface (HTTPS)" {
+  import "pfsense-service"
+
+  check_command = "http"
+  vars.http_port = host.vars.pfsense.https_port ? host.vars.pfsense.https_port : 443
+  vars.http_ssl = true
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Check Web interface (SSL Certificate validity)
+ * Always enabled, can be disabled with host.vars.pfsense.https_certificate_check_enabled = false
+ *
+ * Variables:
+ * - host.vars.pfsense.https_certificate_check_enabled (boolean): enable/disable this check (true|false, default: true)
+ * - host.vars.pfsense.https_port (integer): the HTTPS port (default: 443)
+ * - host.vars.pfsense.https_certificate_days (integer): minimum number of days a certificate has to be valid (default: 14)
+ */
+apply Service "Web Interface (SSL Certificate validity)" {
+  import "pfsense-service"
+
+  check_command = "http"
+  check_interval = 1h
+
+  vars.http_port = host.vars.pfsense.https_port ? host.vars.pfsense.https_port : 443
+  vars.http_ssl = true
+  vars.http_certificate = host.vars.pfsense.https_certificate_days ? host.vars.pfsense.https_certificate_days : 14
+
+  assign where host.vars.distribution == "pfSense" && host.vars.pfsense.https_certificate_check_enabled != false
+}
+
+/*
+ * Check SSH Server
+ * Always enabled
+ *
+ * Variables:
+ * - host.vars.pfsense.ssh_port (integer): the HTTPS port (default: 22)
+ */
+apply Service "SSH Server" {
+  import "pfsense-service"
+
+  check_command = "ssh"
+  vars.ssh_port = host.vars.pfsense.ssh_port ? host.vars.pfsense.ssh_port : 22
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Check DNS Server
+ * Always enabled, can be disabled with host.vars.pfsense.dns_check_enabled = false
+ *
+ * Variables:
+ * - host.vars.pfsense.dns_check_enabled (boolean): enable/disable this check (true|false, default: true)
+ * - host.vars.pfsense.dns_server (string): the IP address of the DNS server to be queried (default: host.address)
+ * - host.vars.pfsense.dns_lookup (string): the name or address to query (default: www.google.com)
+ */
+apply Service "DNS Server" {
+  import "pfsense-service"
+
+  check_command = "dns"
+  vars.dns_server = host.vars.pfsense.dns_server ? host.vars.pfsense.dns_server : host.address
+  vars.dns_lookup = host.vars.pfsense.dns_lookup ? host.vars.pfsense.dns_lookup : "www.google.com"
+
+  assign where host.vars.distribution == "pfSense" && host.vars.pfsense.dns_check_enabled != false
+}
+
+/*
+ * Check load
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.wload (string): exit with WARNING status if load average exeeds WLOAD values separated by commas (1, 5, 15)
+ * - host.vars.pfsense.cload (string): exit with CRITICAL status if load average exeeds WLOAD values separated by commas (1, 5, 15)
+ */
+apply Service "System load" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_load" ]
+  vars.by_ssh_arguments = {
+    "-w" = host.vars.pfsense.wload ? host.vars.pfsense.wload : "5.0,4.0,3.0",
+    "-c" = host.vars.pfsense.wload ? host.vars.pfsense.wload : "5.0,4.0,3.0"
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Check users
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.users_wgreater (boolean): set WARNING status if more than INTEGER users are logged in (default: 5)
+ * - host.vars.pfsense.users_cgreater (boolean): set CRITICAL status if more than INTEGER users are logged in (default: 10)
+ */
+apply Service "Current users" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_users" ]
+  vars.by_ssh_arguments = {
+    "-w" = host.vars.pfsense.users_wgreater ? host.vars.pfsense.users_wgreater : 5,
+    "-c" = host.vars.pfsense.users_cgreater ? host.vars.pfsense.users_cgreater : 10
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Check processes
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.procs_warning (boolean): generate warning state if metric is outside this range (default: 300)
+ * - host.vars.pfsense.procs_critical (boolean): generate critical state if metric is outside this range (default: 400)
+ */
+apply Service "Total processes" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_procs" ]
+  vars.by_ssh_arguments = {
+    "-w" = host.vars.pfsense.procs_warning ? host.vars.pfsense.procs_warning : 300,
+    "-c" = host.vars.pfsense.procs_critical ? host.vars.pfsense.users_cgreater : 400
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * NTP Time
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.ntp_host (string): Host name or IP Address of the NTP host (default: pool.ntp.org)
+ * - host.vars.pfsense.ntp_warning (integer): Offset to result in warning status (seconds)
+ * - host.vars.pfsense.ntp_critical (integer): Offset to result in critical status (seconds)
+ */
+apply Service "NTP Time" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_ntp_time" ]
+  vars.by_ssh_arguments = {
+    "-H" = host.vars.pfsense.ntp_host ? host.vars.pfsense.ntp_host : "pool.ntp.org"
+  }
+
+  if (host.vars.pfsense.ntp_warning) {
+    vars.by_ssh_arguments["-w"] = host.vars.pfsense.ntp_warning
+  }
+
+  if (host.vars.pfsense.ntp_critical) {
+    vars.by_ssh_arguments["-c"] = host.vars.pfsense.ntp_critical
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * DNS Resolution
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.dns_resolution_lookup (string): Host name to lookup (should be pinged, default: www.google.com)
+ */
+apply Service "DNS Resolution" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_icmp" ]
+  vars.by_ssh_arguments = {
+    "-H" = host.vars.pfsense.dns_resolution_lookup ? host.vars.pfsense.dns_resolution_lookup : "www.google.com"
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Default WAN
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.wan_lookup (string): Host name to lookup (should be pinged, default: 8.8.8.8)
+ */
+apply Service "Default WAN" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_icmp" ]
+  vars.by_ssh_arguments = {
+    "-H" = host.vars.pfsense.wan_lookup ? host.vars.pfsense.wan_lookup : "8.8.8.8"
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * CPU Usage
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.cpu_warning (integer): CPU warning level (default: 80)
+ * - host.vars.pfsense.cpu_critical (integer): CPU critical level (default: 90)
+ */
+apply Service "CPU Usage" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_cpu" ]
+  vars.by_ssh_arguments = {
+    "-w" = {
+      value = host.vars.pfsense.cpu_warning ? host.vars.pfsense.cpu_warning : 80
+      order = 1
+    }
+    "-c" = {
+      value = host.vars.pfsense.cpu_critical ? host.vars.pfsense.cpu_critical : 90
+      order = 2
+    }
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * CPU Temperature
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.cpu_temperature_warning (integer): warning level (default: 40)
+ * - host.vars.pfsense.cpu_temperature_critical (integer): critical level (default: 50)
+ */
+apply Service "CPU Temperature" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_cpu_temp" ]
+  vars.by_ssh_arguments = {
+    "-w" = {
+      value = host.vars.pfsense.cpu_temperature_warning ? host.vars.pfsense.cpu_temperature_warning : 40
+      order = 1
+    }
+    "-c" = {
+      value = host.vars.pfsense.cpu_temperature_critical ? host.vars.pfsense.cpu_temperature_critical : 50
+      order = 2
+    }
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Gateway status
+ *
+ * Enabled with host.vars.pfsense.gateway dictionary
+ * Executed by SSH
+ *
+ * Variables:
+ * - dictionary key_name (string): name of the gateway to be checked
+ * - dictionary value (array of dictionaries):
+ *   - description (string): gateway description (optional)
+ *   - warning (string): warning thresholds (wrtt,wpl) (optional, default: 20,10)
+ *   - critical (string): critical thresholds (crtt,cpl) (optional, default: 50,20)
+ */
+apply Service for (gateway_name => config in host.vars.pfsense.gateways) {
+  import "pfsense-ssh-service"
+
+  if (config.description) {
+    name = "Gateway status: " + gateway_name + " (" + config.description + ")"
+  } else {
+    name = "Gateway status: " + gateway_name
+  }
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_gw_status" ]
+  vars.by_ssh_arguments = {
+    "-G" = gateway_name
+  }
+
+  vars.by_ssh_arguments["-w"] = config.warning ? config.warning : "20,10"
+  vars.by_ssh_arguments["-c"] = config.critical ? config.critical : "50,20"
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Interface status
+ *
+ * Enabled with host.vars.pfsense.interfaces dictionary
+ * Executed by SSH
+ *
+ * Variables:
+ * - dictionary key_name (string): name of the interface device to be checked
+ * - dictionary value (array of dictionaries):
+ *   - description (string): description of the interface to be checked
+ *   - carp (string): expected CARP status (optional, default: disabled)
+ */
+apply Service for (interface_name => config in host.vars.pfsense.interfaces) {
+  import "pfsense-ssh-service"
+
+  # If description is empty or not given use the interface name as description
+  if (config.description) {
+    var interface_description = config.description
+  } else {
+    var interface_description = interface_name
+  }
+
+  name = "Interface '" + interface_description + "' (" + interface_name + ") status"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_interface" ]
+  vars.by_ssh_arguments = {
+    "-i" = interface_name
+    "-name" = interface_description
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+apply Service for (interface_name => config in host.vars.pfsense.interfaces) {
+  import "pfsense-ssh-service"
+
+  # If interface_description is empty or not given use the interface name as description
+  if (config.description) {
+    var interface_description = config.description
+  } else {
+    var interface_description = interface_name
+  }
+
+  name = "Interface '" + interface_description + "' (" + interface_name + ") CARP status"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_carp_if" ]
+  vars.by_ssh_arguments = {
+    "--interface" = {
+        value = interface_name
+        order = 1
+        skip_key = true
+    }
+    "--expected-status" = {
+        value = config.carp
+        order = 2
+        skip_key = true
+    }
+  }
+
+  assign where host.vars.distribution == "pfSense" && config.carp && config.carp != "disabled"
+}
+
+/*
+ * Memory
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.check_memory (string): check free or used memory (free|used, default: free)
+ * - host.vars.pfsense.memory_warning (integer): percent free/used when to warn (default 20)
+ * - host.vars.pfsense.memory_critical (integer): percent free/used when critical (default 10)
+ */
+apply Service "Memory" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_mem" ]
+  vars.by_ssh_arguments = {
+    "-w" = host.vars.pfsense.memory_warning ? host.vars.pfsense.memory_warning : 20
+    "-c" = host.vars.pfsense.memory_critical ? host.vars.pfsense.memory_warning : 10
+  }
+
+  # Set default check memory type
+  if (!host.vars.pfsense.check_memory) {
+    host.vars.pfsense.check_memory = "free"
+  }
+
+  if (host.vars.pfsense.check_memory == "free") {
+    vars.by_ssh_arguments["-f"] = ""
+  } else if (host.vars.pfsense.check_memory == "used") {
+    vars.by_ssh_arguments["-u"] = ""
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Services
+ *
+ * Enabled with host.vars.pfsense.services dictionary
+ * Executed by SSH
+ *
+ * Variables:
+ * - dictionary key (string): name of the service to be checked
+ * - dictionary value (string): description of the service to be checked
+ */
+apply Service for (service_name => service_description in host.vars.pfsense.services) {
+  import "pfsense-ssh-service"
+
+  # If service_description is empty or not given use the service name as description
+  if (!service_description || service_description == "") {
+    service_description = service_name
+  }
+
+  name = "Service '" + service_description + "' (" + service_name + ")"
+  check_command = "by_ssh"
+
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_services" ]
+  vars.by_ssh_arguments = {
+    "-name" = service_name
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * OpenVPN Servers
+ *
+ * Enabled with host.vars.openvpn_servers list
+ * Executed by SSH
+ *
+ * Variables:
+ * - dictionary key (integer): OpenVPN Server id
+ * - dictionary value (string): description of the OpenVPN Server
+ */
+apply Service for (server_id => server_name in host.vars.pfsense.openvpn_servers) {
+  import "pfsense-ssh-service"
+
+  # If server_name is empty or not given use the service name as description
+  if (!server_name || server_name == "") {
+    server_name = server_id
+  }
+
+  name = "OpenVPN Server '" + server_name + "' (ID " + server_id + ")"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_services" ]
+  vars.by_ssh_arguments = {
+    "-name" = "openvpn server " + server_id
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * States table
+ * Always enabled, executed by SSH
+ *
+ * Variables:
+ * - host.vars.pfsense.state_table_warning (integer): warning level (default: 75)
+ * - host.vars.pfsense.state_table_critical (integer): critical level (default: 80)
+ */
+apply Service "States Table" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_state_table" ]
+
+  vars.by_ssh_arguments = {
+    "-w" = {
+      value = host.vars.pfsense.state_table_warning ? host.vars.pfsense.state_table_warning : 75
+      order = 1
+    }
+    "-c" = {
+      value = host.vars.pfsense.state_table_critical ? host.vars.pfsense.state_table_critical : 80
+      order = 2
+    }
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * System Uptime
+ * Always enabled, executed by SSH
+ */
+apply Service "System Uptime" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_uptime" ]
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * System Version
+ * Always enabled, executed by SSH
+ */
+apply Service "System Version" {
+  import "pfsense-ssh-service"
+
+  check_command = "by_ssh"
+  check_interval = 24h
+
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_version" ]
+  vars.by_ssh_timeout = 60
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Remote pings
+ *
+ * Enabled with host.vars.pfsense.pings dictionary
+ * Executed by SSH
+ *
+ * Variables:
+ * - dictionary key (string): name of the check
+ * - dictionary value (array of dictionaries):
+ *   - target (string): target (IP or hostname) to ping
+ *   - warning (string): warning threshold (default: 100.000ms,10%)
+ *   - critical (string): critical threshold (default: 200.000ms,30%)
+ *   - number (integer): number of packets to send (default: 5)
+ */
+apply Service for (service_description => service_config in host.vars.pfsense.pings) {
+  import "pfsense-ssh-service"
+
+  name = service_description + " (Ping)"
+  check_command = "by_ssh"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  vars.by_ssh_command = [ "/usr/local/libexec/nagios/check_icmp" ]
+  vars.by_ssh_arguments = {
+    "-H" = service_config.target
+    "-w" = service_config.warning ? service_config.warning : "100.000ms,10%"
+    "-c" = service_config.critical ? service_config.critical : "200.000ms,30%"
+    "-n" = service_config.number ? service_config.number : 5
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * IPSEC tunnel status
+ *
+ * Enabled with host.vars.pfsense.ipsec_tunnels dictionary
+ * Executed by SSH
+ *
+ * Variables:
+ * - dictionary key (string): remote gateway of the IPSec tunnel
+ * - dictionary value (string): description of the IPSec tunnel
+ */
+apply Service for (tunnel_gateway => tunnel_name in host.vars.pfsense.ipsec_tunnels) {
+  import "pfsense-ssh-service"
+
+  name = "IPSec Tunnel '" + tunnel_name + "'"
+  check_command = "by_ssh"
+  check_interval = 15m
+
+  vars.by_ssh_command = [ "sudo", "/usr/local/libexec/nagios/check_pf_ipsec_tunnel" ]
+  vars.by_ssh_arguments = {
+    "-e" = tunnel_gateway
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Remote HTTP
+ *
+ * Enabled with host.vars.pfsense.http dictionary
+ * Executed by SSH
+ *
+ * Variables:
+ * - dictionary key (string): description of the service
+ * - dictionary value (array of dictionaries):
+ *   - http_vhost (string): host name argument for servers using host headers (virtual host)
+ *   - http_address (string): IP address or name (use numeric address if possible to bypass DNS lookup)
+ *   - http_uri (string): URL to GET or POST (default: /)
+ *   - http_port (integer): port number (default: 80)
+ *   - http_ssl (boolean): connect via SSL (default: false)
+ *   - http_certificate (integer): minimum number of days a certificate has to be valid. This parameter explicitely sets the port to 443 and ignores the URL if passed.
+ *   - http_auth_pair (string): username:password on sites with basic authentication
+ *   - http_expect (string): comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response (default: HTTP/1.)
+ *   - http_headerstring (string): string to expect in the response headers
+ *   - http_string (string): string to expect in the content
+ *   - http_post (string): URL encoded http POST data
+ *   - http_method (string): set http method (for example: HEAD, OPTIONS, TRACE, PUT, DELETE)
+ *   - http_header (array): any other tags to be sent in http header (may be repeated)
+ */
+apply Service for (service_name => service_config in host.vars.pfsense.http) {
+  import "pfsense-ssh-service"
+
+  name = service_name
+  check_command = "by_ssh"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  vars.by_ssh_command = [ "/usr/local/libexec/nagios/check_http" ]
+  vars.by_ssh_arguments = {
+    "-H" = service_config.http_vhost,
+    "-I" = service_config.http_address,
+    "-u" = service_config.http_uri,
+    "-p" = service_config.http_port,
+    "-S" = http_ssl,
+    "-C" = service_config.http_certificate,
+    "-a" = service_config.http_auth_pair,
+    "-s" = service_config.http_string,
+    "-P" = service_config.http_post,
+    "-j" = service_config.http_method,
+    "-k" = service_config.http_header
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+/*
+ * Remote TCP Port
+ *
+ * Enabled with host.vars.pfsense.tcp dictionary
+ * Executed by SSH
+ *
+ * Variables:
+ * - dictionary key (string): description of the service
+ * - dictionary value (array of dictionaries):
+ *   - tcp_address (string): Host name, IP Address, or unix socket (must be an absolute path)
+ *   - tcp_port (string): The TCP port number
+ *   - tcp_expect (string): String to expect in server response (may be repeated)
+ */
+apply Service for (service_name => service_config in host.vars.pfsense.tcp) {
+  import "pfsense-ssh-service"
+
+  name = service_name
+  check_command = "by_ssh"
+
+  # Custom check interval
+  if (service_config.check_interval) {
+    check_interval = service_config.check_interval
+  }
+
+  vars.by_ssh_command = [ "/usr/local/libexec/nagios/check_http" ]
+  vars.by_ssh_arguments = {
+    "-H" = service_config.tcp_address,
+    "-p" = service_config.tcp_port,
+    "-e" = service_config.tcp_portservice_config.tcp_expect
+  }
+
+  assign where host.vars.distribution == "pfSense"
+}
+
+
+###############################################################################
+# Groups
+
+# Host group
+object HostGroup "pfsense-hosts" {
+    display_name = "pfSense Hosts"
+    assign where "pfsense" in keys(host.vars)
+}

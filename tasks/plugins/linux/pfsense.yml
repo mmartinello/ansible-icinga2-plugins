@@ -1,0 +1,22 @@
+---
+- name: Install the pfSense check plugin
+  when: ansible_fqdn == icinga2_master_inventory_hostname
+  block:
+    - name: Copy the check_postgres plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_postgres.pl"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_postgres.pl"
+        mode: '0750'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+      ignore_errors: true
+      register: _ignore_errors
+
+    - name: Copy the services definition file
+      ansible.builtin.template:
+        src: plugins/linux/postgres.conf.j2
+        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/postgres.conf"
+        mode: '0644'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+      notify: Reload Icinga2
