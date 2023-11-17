@@ -851,7 +851,7 @@ apply Service for (service_name => service_config in host.vars.service) {
 }
 
 # Check SNMP
-# Assigned with 'snmp' host var
+# Assigned with 'snmp' host var and vars.check_command == "linuxfabrik"
 apply Service for (service_name => service_config in host.vars.snmp) {
   import "linuxfabrik-service"
   name = service_name
@@ -874,7 +874,7 @@ apply Service for (service_name => service_config in host.vars.snmp) {
 
   vars += service_config
 
-  assign where host.vars.linuxfabrik_monitoring_plugins_installed
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && service_config.check_command == "linuxfabrik"
 }
 
 # Swap Usage
