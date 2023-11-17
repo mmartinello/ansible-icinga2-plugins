@@ -1,0 +1,30 @@
+# {{ ansible_managed }}
+
+/******************************************************************************
+Custom services temples
+******************************************************************************/
+
+# Custom service template: this template is used from every custom plugins
+template Service "custom-service" {
+    import "generic-service"
+
+    # Custom check interval
+    if (vars.check_interval) {
+        check_interval = vars.check_interval
+    }
+
+    # Custom icon
+    if (vars.icon_image) {
+        icon_image = vars.icon_image
+    }
+
+    # Enable notifications
+    if (vars.enable_notifications) {
+        enable_notifications = vars.enable_notifications
+    }
+
+    # Enable force remote command
+    if (vars.remote_command) {
+        command_endpoint = host.vars.client_endpoint
+    }
+}
