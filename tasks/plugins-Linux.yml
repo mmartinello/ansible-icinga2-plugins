@@ -19,6 +19,16 @@
     owner: "{{ icinga2_user }}"
     group: "{{ icinga2_group }}"
 
+- name: Create the custom templates configuration file
+  ansible.builtin.template:
+    src: plugins/linux/service-templates.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/service-templates.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Reload Icinga2
+
+
 ###############################################################################
 # Plugin list
 
@@ -77,6 +87,10 @@
 # Samba AD plugins
 - name: Install Samba Active Directory plugins
   ansible.builtin.include_tasks: plugins/linux/samba_ad.yml
+
+# SNMP plugins
+- name: Install SNMP plugins
+  ansible.builtin.include_tasks: plugins/linux/snmp.yml
 
 # SSSD plugins
 - name: Install SSSD plugins

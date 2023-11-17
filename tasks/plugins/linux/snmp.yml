@@ -1,0 +1,36 @@
+---
+- name: Check if the SNMP check plugin should be installed
+  block:
+    - name: Check if the plugin command is available
+      ansible.builtin.stat:
+        path: "{{ icinga2_plugins_src_dir }}/check_snmp"
+      delegate_to: localhost
+      register: plugin_command
+      become: false
+
+- name: Install the SNMP check plugin
+  when: >
+    ansible_system == "Linux" and
+    plugin_command.stat.exists and
+    (
+      icinga2_client_vars.snmp is defined
+      or 'snmp' in icinga2_plugins_enabled
+      or ansible_fqdn == icinga2_master_inventory_hostname
+    )
+  block:
+    - name: Copy the SNMP plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_snmp"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_snmp"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+        mode: '0750'
+
+    - name: Copy the services definition file
+      ansible.builtin.template:
+        src: plugins/linux/snmp.conf.j2
+        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/snmp.conf"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+        mode: '0640'
+      notify: Reload Icinga2

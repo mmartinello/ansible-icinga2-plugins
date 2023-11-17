@@ -1,0 +1,152 @@
+# {{ ansible_managed }}
+
+/*
+Commands and services for SNMP check from Nagios Plugins:
+https://nagios-plugins.org/
+
+This plugin uses a custom version of the check_snmp from Nagios Plugins patched
+to add a multiplier flag
+(https://exchange.nagios.org/directory/Patches/check_snmp_multiplier/details)
+*/ 
+
+
+#
+# Check Commands
+###############################################################################
+
+# check_snmp
+object CheckCommand "_snmp" {
+	command = [ "{{ icinga2_plugins_dest_dir }}/check_snmp" ]
+    import "ipv4-or-ipv6"
+
+	arguments = {
+		"-H" = {
+			value = "$snmp_address$"
+			description = "Host name, IP Address, or unix socket (must be an absolute path)"
+		}
+		"-o" = {
+			value = "$snmp_oid$"
+			description = "Object identifier(s) or SNMP variables whose value you wish to query"
+		}
+		"-C" = {
+			value = "$snmp_community$"
+			description = "Optional community string for SNMP communication (default is 'public')"
+		}
+		"-c" = {
+			value = "$snmp_crit$"
+			description = "Critical threshold range(s)"
+		}
+		"-w" = {
+			value = "$snmp_warn$"
+			description = "Warning threshold range(s)"
+		}
+		"-s" = {
+			value = "$snmp_string$"
+			description = "Return OK state (for that OID) if STRING is an exact match"
+		}
+		"-r" = {
+			value = "$snmp_ereg$"
+			description = "Return OK state (for that OID) if extended regular expression REGEX matches"
+		}
+		"-R" = {
+			value = "$snmp_eregi$"
+			description = "Return OK state (for that OID) if case-insensitive extended REGEX matches"
+		}
+		"-l" = {
+			value = "$snmp_label$"
+			description = "Prefix label for output from plugin"
+		}
+		"-u" = {
+			value = "$snmp_units$"
+			description = "Units label(s) for output data (e.g., 'sec.')"
+		}
+		"-t" = {
+			value = "$snmp_timeout$"
+			description = "Seconds before connection times out (default: 10)"
+		}
+		"-p" = {
+			value = "$snmp_port$"
+			description = "Port number (default: 161)"
+		}
+		"-e" = {
+			value = "$snmp_retries$"
+			description = "Number of retries to be used in the requests"
+		}
+		"--invert-search" = {
+			set_if = "$snmp_invert_search$"
+			description = "Invert search result and return CRITICAL if found"
+		}
+		"-P" = {
+			value = "$snmp_version$"
+			description = "SNMP protocol version"
+		}
+		"-m" = {
+			value = "$snmp_miblist$"
+			description = "List of MIBS to be loaded (default = none if using numeric OIDs or 'ALL' for symbolic OIDs.)"
+		}
+		"--rate-multiplier" = {
+			value = "$snmp_rate_multiplier$"
+			description = "Converts rate per second. For example, set to 60 to convert to per minute"
+		}
+		"--rate" = {
+			set_if = "$snmp_rate$"
+			description = "Enable rate calculation"
+		}
+		"-n" = {
+			set_if = "$snmp_getnext$"
+			description = "Use SNMP GETNEXT instead of SNMP GET"
+		}
+		"--offset" = {
+			value = "$snmp_offset$"
+			description = "Add/substract the specified OFFSET to numeric sensor data"
+		}
+		"-D" = {
+			value = "$snmp_output_delimiter$"
+			description = "Separates output on multiple OID requests"
+		}
+		"-O" = {
+			set_if = "$snmp_perf_oids$"
+			description = "Label performance data with OIDs instead of --label's"
+		}
+        "-d" = {
+			value = "$snmp_delimiter$"
+			description = "Delimiter to use when parsing returned data. Default is '=' Any data on the right hand side of the delimiter is considered to be the data that should be used in the evaluation."
+		}
+        "-M" = {
+			value = "$snmp_multiplier$"
+			description = "The result will be multiplied by -M Option"
+		}
+	}
+
+	vars.snmp_address = "$check_address$"
+	vars.snmp_community = "public"
+	vars.snmp_invert_search = false
+	vars.snmp_timeout = "10"
+}
+
+
+#
+# Services
+###############################################################################
+
+# Check SNMP: assigned through 'snmp' host var
+apply Service for (service_name => config in host.vars.snmp) {
+    import "custom-service"
+    name = service_name
+
+    check_command = "_snmp"
+    
+    vars += config
+}
+
+
+#
+# Groups
+###############################################################################
+
+# Service group
+object ServiceGroup "snmp" {
+  display_name = "SNMP Checks"
+
+  assign where match("_snmp", service.check_command)
+}
