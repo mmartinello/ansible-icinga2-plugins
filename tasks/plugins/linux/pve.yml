@@ -47,6 +47,7 @@
     - name: Install plugin dependencies
       ansible.builtin.package:
         name:
+          - python3-pip
           - ruby
         state: present
       when: ansible_os_family | lower in icinga2_apt_distros
