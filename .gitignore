@@ -9,6 +9,6 @@
 
 *.pyc
 
-TODO.txt
+TODO*
 
 .vscode

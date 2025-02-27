@@ -1,0 +1,93 @@
+# {{ ansible_managed }}
+
+/*
+Commands and services for Speedtest check
+*/ 
+
+
+#
+# Check Commands
+###############################################################################
+
+# check_speedtest
+object CheckCommand "_speedtest" {
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_speedtest.py" ]
+
+    arguments = {
+        "--no-download" = {
+            set_if = "$speedtest_no_download$"
+            description = "Do not perform download test."
+        }
+        "--no-upload" = {
+            set_if = "$speedtest_no_upload$"
+            description = "Do not perform upload test."
+        }
+        "--always-ok" = {
+            set_if = "$speedtest_always_ok$"
+            description = "Always exit with OK."
+        }
+        "-s" = {
+            value = "$speedtest_server$"
+            description = "Specify a server ID to test against."
+        }
+        "-w" = {
+            value = "$speedtest_download_warning$"
+            description = "Download warning level in Mbit/s (example: 10 or 10.5)."
+        }
+        "-c" = {
+            value = "$speedtest_download_critical$"
+            description = "Download critical level in Mbit/s (example: 2 or 2.5)."
+        }
+        "-W" = {
+            value = "$speedtest_upload_warning$"
+            description = "Upload warning level in Mbit/s (example: 2 or 2.5)."
+        }
+        "-C" = {
+            value = "$speedtest_upload_critical$"
+            description = "Upload critical level in Mbit/s (example: 1 or 1.5)."
+        }
+        "-m" = {
+            value = "$speedtest_download_max$"
+            description = "Maximum download level in Mbit/s for the connection."
+        }
+        "-M" = {
+            value = "$speedtest_upload_max$"
+            description = "Maximum upload level in Mbit/s for the connection."
+        }
+        "--debug" = {
+            set_if = "$speedtest_debug$"
+            description = "Print debugging info to console. This may make the plugin not working with Icinga since it prints stuff to console."
+        }
+        "--debug2" = {
+            set_if = "$speedtest_debug2$"
+            description = "Print exceptions to console. This may make the plugin not working and get wrong results with Icinga since it prints stuff to console."
+        }
+    }
+}
+
+
+#
+# Services
+###############################################################################
+
+# Check SNMP: assigned through 'speedtest' host var
+apply Service for (service_name => config in host.vars.speedtest) {
+    import "generic-service"
+    name = service_name
+
+    check_command = "_speedtest"
+    
+    vars += config
+}
+
+
+#
+# Groups
+###############################################################################
+
+# Service group
+object ServiceGroup "speedtest" {
+  display_name = "Speedtest Checks"
+
+  assign where match("_speedtest", service.check_command)
+}

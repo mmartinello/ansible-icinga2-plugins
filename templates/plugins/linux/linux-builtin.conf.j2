@@ -52,9 +52,9 @@ apply Service for (service_name => service_config in host.vars.ssh) {
     check_command = "ssh"
     vars += service_config
 
-    if (host.vars.client_endpoint) {
-        command_endpoint = host.vars.client_endpoint
-    }
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
 }
 
 apply Service for (http_vhost => config in host.vars.http_vhosts) {
@@ -64,7 +64,7 @@ apply Service for (http_vhost => config in host.vars.http_vhosts) {
 
   vars += config
 
-  if (config.remote_check) {
+  if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
   }
 }
@@ -173,8 +173,8 @@ apply Service for (tcp => config in host.vars.tcp) {
 
   vars += config
 
-  if (host.vars.client_endpoint && config.command_endpoint != "local") {
-    command_endpoint = host.vars.client_endpoint
+  if (config.command_endpoint) {
+    command_endpoint = config.command_endpoint
   }
 }
 

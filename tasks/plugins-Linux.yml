@@ -36,6 +36,10 @@
 - name: Install Always OK plugin
   ansible.builtin.include_tasks: plugins/linux/always-ok.yml
 
+# Asterisk
+- name: Install Asterisk checks
+  ansible.builtin.include_tasks: plugins/linux/asterisk.yml
+
 # Builtin plugins
 - name: Install Linux builtin plugins
   ansible.builtin.include_tasks: plugins/linux/linux-builtin.yml
@@ -99,6 +103,10 @@
 # Samba plugins
 - name: Install Samba plugins
   ansible.builtin.include_tasks: plugins/linux/samba.yml
+
+# Speedtest plugin
+- name: Install Speedtest plugin
+  ansible.builtin.include_tasks: plugins/linux/speedtest.yml
 
 # ZFS plugins
 - name: Install ZFS plugins

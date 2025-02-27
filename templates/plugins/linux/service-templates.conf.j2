@@ -1,13 +1,23 @@
 # {{ ansible_managed }}
 
 /******************************************************************************
-Custom services temples
+Custom settings
+
+This template allow you to customize some settings of the service setting
+some service variables:
+  * check_interval: customise the check interval for the current service
+  * icon_image: customize the icon image for the current service
+  * enable_notifications: enable or disable notifications (true|false)
+  * command_endpoint: remote command endpoint which should execute the check
+
+WARNING: this works without any problem for services created with the
+'apply Service for' statement, as these have a specific and unique settings.
+All other services (created with the simple "apply Service" statement should
+not use this template as variables could overlab through different services!
 ******************************************************************************/
 
 # Custom service template: this template is used from every custom plugins
-template Service "custom-service" {
-    import "generic-service"
-
+template Service "custom-settings" {
     # Custom check interval
     if (vars.check_interval) {
         check_interval = vars.check_interval
@@ -24,7 +34,7 @@ template Service "custom-service" {
     }
 
     # Enable force remote command
-    if (vars.remote_command) {
-        command_endpoint = host.vars.client_endpoint
+    if (vars.command_endpoint) {
+        command_endpoint = vars.command_endpoint
     }
 }

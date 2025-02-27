@@ -1,0 +1,62 @@
+---
+- name: Check if the Asterisk plugin should be installed
+  block:
+    - name: Check if the plugin command is available
+      ansible.builtin.stat:
+        path: "{{ icinga2_plugins_src_dir }}/check_asterisk_pjsip_trunk.php"
+      delegate_to: localhost
+      register: plugin_command
+      become: false
+
+- name: Install the Asterisk checks
+  when: >
+    ansible_system == "Linux" and
+    plugin_command.stat.exists and
+    (
+      icinga2_client_vars.asterisk is defined
+      or 'asterisk' in icinga2_plugins_enabled
+      or ansible_fqdn == icinga2_master_inventory_hostname
+    )
+  block:
+    - name: Intall requirements (Debian)
+      ansible.builtin.apt:
+        name: libswitch-perl
+        state: present
+      when: ansible_os_family | lower in icinga2_apt_distros
+
+    - name: Install requirements (RedHat)
+      ansible.builtin.yum:
+        name: perl-Switch
+        state: present
+      when: >
+        ansible_os_family in ["CentOS", "RedHat", "Red Hat Enterprise Linux"]
+        or ansible_distribution_file_variety == "RedHat"
+
+    - name: Copy the check_sip plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_sip"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_sip"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+        mode: '0750'
+
+    - name: Copy the check_asterisk_pjsip_trunk plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_asterisk_pjsip_trunk.php"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_asterisk_pjsip_trunk.php"
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+        mode: '0750'
+
+- name: Copy the services definition file
+  ansible.builtin.template:
+    src: plugins/linux/asterisk.conf.j2
+    dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/asterisk.conf"
+    owner: "{{ icinga2_user }}"
+    group: "{{ icinga2_group }}"
+    mode: '0640'
+  notify: Reload Icinga2
+  when: >
+    icinga2_client_vars.asterisk is defined
+    or 'asterisk' in icinga2_plugins_enabled
+    or ansible_fqdn == icinga2_master_inventory_hostname

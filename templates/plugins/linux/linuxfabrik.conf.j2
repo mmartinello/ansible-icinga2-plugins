@@ -54,7 +54,7 @@ apply Service "Disk IO" {
 }
 
 # Disk SMART
-# Assigned on every host with disk_smart_enabled=true
+# Assigned on every phisical host and every host with disk_smart_enabled=true
 apply Service "Disk SMART" {
   import "linuxfabrik-service"
 
@@ -62,9 +62,9 @@ apply Service "Disk SMART" {
   check_interval = 8h
   icon_image = "linuxfabrik/disk-smart.png"
 
-  assign where host.vars.disk_smart_enabled
-  assign where host.vars.virtualization_role == "host"
-  assign where host.vars.virtualization_role == "NA"
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.disk_smart_enabled
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.virtualization_role == "host"
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.virtualization_role == "NA"
   ignore where host.vars.disk_smart_enabled == false
 }
 
@@ -269,6 +269,18 @@ apply Service for (service_name => service_config in host.vars.file_size) {
 }
 
 # FS Inodes
+# Assigned on every Linux host
+apply Service "File System used inode space" {
+  import "linuxfabrik-service"
+
+  check_command = "_linuxfabrik_fs_inodes"
+  check_interval = 5m
+  icon_image = "linuxfabrik/fs-inodes.png"
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+}
+
+# Specific FS Inodes
 # Assigned with 'fs_inodes' host var
 apply Service for (service_name => service_config in host.vars.fs_inodes) {
   import "linuxfabrik-service"
@@ -558,6 +570,7 @@ apply Service "System Needs Restarting" {
   icon_image = "linuxfabrik/needs-restarting.png"
 
   assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux"
+  ignore where host.vars.distribution == "Sangoma"
 }
 
 # Network Bonding
@@ -780,6 +793,20 @@ apply Service for (service_name => service_config in host.vars.redis) {
   assign where host.vars.linuxfabrik_monitoring_plugins_installed
 }
 
+# Check Redis Version
+# Assigned with 'redis' host var
+apply Service for (service_name => service_config in host.vars.redis) {
+  import "linuxfabrik-service"
+  name = service_name + " - Redis Version"
+
+  check_command = "_linuxfabrik_redis_version"
+  icon_image = "linuxfabrik/redis-version.png"
+
+  vars += service_config
+
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && service_config.check_version
+}
+
 # RPM Last Activity
 # Assigned on every Linux host with host.vars.rpm=true
 apply Service "RPM Last Activity" {
@@ -819,10 +846,11 @@ apply Service "Hardware Fans Speed" {
 apply Service "Hardware Temperature Sensors" {
   import "linuxfabrik-service"
 
-  check_command = "_linuxfabrik_sensors_temperature"
+  check_command = "_linuxfabrik_sensors_temperatures"
   icon_image = "linuxfabrik/sensors-temperature.png"
 
   assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.temperature
+  assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.os == "Linux" && host.vars.virtualization_role == "host"
 }
 
 # Check Service

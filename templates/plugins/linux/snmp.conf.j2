@@ -131,7 +131,7 @@ object CheckCommand "_snmp" {
 
 # Check SNMP: assigned through 'snmp' host var
 apply Service for (service_name => config in host.vars.snmp) {
-    import "custom-service"
+    import "generic-service"
     name = service_name
 
     check_command = "_snmp"

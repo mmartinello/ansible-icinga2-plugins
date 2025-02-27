@@ -1,0 +1,160 @@
+# {{ ansible_managed }}
+
+/*
+Commands and services for Asterisk Server
+*/ 
+
+
+#
+# Check Commands
+###############################################################################
+
+# check_sip
+object CheckCommand "_sip" {
+    import "ipv4-or-ipv6"
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_sip" ]
+
+    arguments = {
+        "-u" = {
+            value = "$sip_uri$"
+            description = "Full SIP uri, eg sip:uri@example.com"
+        }
+        "-H" = {
+            value = "$sip_host$"
+            description = "Host name or IP Address to connect to"
+        }
+        "-p" = {
+            value = "$sip_port$"
+            description = "Port to connect to"
+        }
+        "-f" = {
+            value = "$sip_from_uri$"
+            description = "Full SIP uri, will be used for the 'From:' Header"
+        }
+        "-s" = {
+            value = "$sip_always_ok$"
+            description = "Changes default behavior: all SIP-responses will result in an 'OK'"
+        }
+    }
+
+    vars.check_sip_host = "$check_address$"
+}
+
+# check_asterisk_pjsip_trunk
+object CheckCommand "_pjsip_trunk" {
+    import "ipv4-or-ipv6"
+    command = [ "{{ icinga2_plugins_dest_dir }}/check_asterisk_pjsip_trunk.php" ]
+
+    arguments = {
+        "-H" = {
+            value = "$pjsip_trunk_ami_host$"
+            description = "Asterisk AMI Host"
+        }
+        "-P" = {
+            value = "$pjsip_trunk_ami_port$"
+            description = "Asterisk AMI "
+        }
+        "-u" = {
+            value = "$pjsip_trunk_username$"
+            description = "Asterisk AMI "
+        }
+        "-p" = {
+            value = "$pjsip_trunk_password$"
+            description = "Asterisk AMI "
+        }
+        "-E" = {
+            value = "$pjsip_trunk_endpoint$"
+            description = "PJSIP trunk endpoint name"
+            required = true
+        }
+    }
+
+    vars.pjsip_trunk_ami_host = "$check_address$"
+}
+
+
+#
+# Services
+###############################################################################
+
+# Check Asterisk service: assigned through 'asterisk' host var
+
+apply Service "Asterisk VoIP Server (Process)" {
+    import "generic-service"
+
+    check_command = "procs"
+
+    vars += config
+    vars.procs_command = "asterisk"
+    vars.procs_warning = "1:"
+    vars.procs_critical = "1:"
+
+    import "custom-settings"
+
+    if (host.vars.client_endpoint) {
+        command_endpoint = host.vars.client_endpoint
+    }
+
+    assign where host.vars.asterisk
+}
+
+apply Service "Asterisk VoIP Server (AMI Port)" {
+    import "generic-service"
+
+    check_command = "tcp"
+
+    if (host.vars.asterisk.ami_port) {
+        vars.tcp_port = host.vars.asterisk.ami_port
+    } else {
+        vars.tcp_port = 5038
+    }
+
+    assign where host.vars.asterisk
+}
+
+apply Service "Asterisk VoIP Server (SIP Service)" {
+    import "generic-service"
+
+    check_command = "tcp"
+
+    if (host.vars.asterisk.sip_port) {
+        vars.sip_port = host.vars.asterisk.sip_port
+    } else {
+        vars.sip_port = 5060
+    }
+
+    vars.sip_uri = "sip:icinga@" + vars.host.address
+
+    assign where host.vars.asterisk
+}
+
+apply Service for (trunk_name => service_description in host.vars.asterisk.pjsip_trunks) {
+    import "generic-service"
+    
+    # If service_description is empty or not given use the trunk name as description
+    if (!service_description || service_description == "") {
+      service_description = trunk_name
+    }
+
+    name = "PJSIP Trunk '" + service_description + "' (" + trunk_name + ")"
+
+    check_command = "_check_asterisk_pjsip_trunk"
+    
+    vars.pjsip_trunk_ami_port = host.vars.asterisk.ami_port ? host.vars.asterisk.ami_port: 5038
+    vars.pjsip_trunk_username = host.vars.asterisk.ami_username
+    vars.pjsip_trunk_password = host.vars.asterisk.ami_password
+    vars.pjsip_trunk_endpoint = trunk_name
+
+    import "custom-settings"
+}
+
+
+#
+# Groups
+###############################################################################
+
+# Service group
+object ServiceGroup "pjsip_trunks" {
+    display_name = "Asterisk PJSIP Trunks"
+    assign where match("_check_asterisk_pjsip_trunk", service.check_command)
+}
