@@ -7,4 +7,7 @@
   ansible.builtin.include_tasks: install-Centos.yml
   when: >
     ansible_os_family in ["CentOS", "RedHat", "Red Hat Enterprise Linux"]
-    or ansible_distribution_file_variety == "RedHat"
+    or (
+      ansible_distribution_file_variety is defined
+      and ansible_distribution_file_variety == "RedHat"
+    )
