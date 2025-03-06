@@ -3,3 +3,4 @@
 icinga2_user: nagios
 icinga2_group: nagios
 icinga2_config_root_dir: 'C:\ProgramData\icinga2\etc\icinga2'
+icinga2_plugins_icons_install: false
