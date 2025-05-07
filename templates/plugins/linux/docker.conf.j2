@@ -1,0 +1,165 @@
+# {{ ansible_managed }}
+
+/*
+Commands and services for Docker checks:
+  - standard check_tcp plugin (https://www.monitoring-plugins.org/doc/man/check_tcp.html)
+  - check_docker (https://github.com/timdaman/check_docker)
+*/ 
+
+# Check Command definition
+object CheckCommand "_check_docker_container" {
+  import "ipv4-or-ipv6"
+
+  command = [ "{{ icinga2_plugins_dest_dir }}/check_docker" ]
+
+  arguments = {
+    "--connection" = {
+      value = "$docker_container_connection$"
+      description = "Path to the Docker socket (e.g., /var/run/docker.sock) or IP:port of the Docker daemon."
+    }
+
+    "--secure-connection" = {
+      value = "$docker_container_secure_connection$"
+      description = "IP:port of the Docker daemon with TLS protection."
+    }
+
+    "--binary_units" = {
+      set_if = "$docker_container_binary_units$"
+      description = "Use base 1024 for size units (KB, MB, GB, TB). This is the default."
+    }
+
+    "--decimal_units" = {
+      set_if = "$docker_container_decimal_units$"
+      description = "Use base 1000 for size units (KB, MB, GB, TB)."
+    }
+
+    "--timeout" = {
+      value = "$docker_container_timeout$"
+      description = "Connection timeout in seconds (default: 10.0)."
+    }
+
+    "--containers" = {
+      value = "$docker_container_containers$"
+      repeat_key = true
+      description = "List of container name regexes to check. If omitted, all containers are checked."
+    }
+
+    "--present" = {
+      set_if = "$docker_container_present$"
+      description = "Ensures each container regex matches at least one container."
+    }
+
+    "--threads" = {
+      value = "$docker_container_threads$"
+      description = "Maximum number of concurrent threads/connections minus one (default: 10)."
+    }
+
+    "--cpu" = {
+      value = "$docker_container_cpu$"
+      description = "CPU usage thresholds in WARN:CRIT format, as percentage of limits."
+    }
+
+    "--memory" = {
+      value = "$docker_container_memory$"
+      description = "Memory usage thresholds in WARN:CRIT:UNIT format. Units can be %,B,KB,MB,GB."
+    }
+
+    "--status" = {
+      value = "$docker_container_status$"
+      description = "Desired container status (e.g., running, exited)."
+    }
+
+    "--health" = {
+      set_if = "$docker_container_health$"
+      description = "Check the container's health check status (requires healthcheck in Dockerfile)."
+    }
+
+    "--uptime" = {
+      value = "$docker_container_uptime$"
+      description = "Minimum container uptime in seconds (helps detect frequent crashes)."
+    }
+
+    "--image-age" = {
+      value = "$docker_container_image_age$"
+      description = "Maximum allowed container image age in days."
+    }
+
+    "--version" = {
+      set_if = "$docker_container_version$"
+      description = "Check if running images match the registry versions (no authentication supported)."
+    }
+
+    "--insecure-registries" = {
+      value = "$docker_container_insecure_registries$"
+      repeat_key = true
+      description = "List of HTTP (non-TLS) Docker registries for use with --version."
+    }
+
+    "--restarts" = {
+      value = "$docker_container_restarts$"
+      description = "Restart threshold in WARN:CRIT format (number of container restarts)."
+    }
+
+    "--no-ok" = {
+      set_if = "$docker_container_no_ok$"
+      description = "Suppress detailed OK messages; only show a single OK if all checks pass."
+    }
+
+    "--no-performance" = {
+      set_if = "$docker_container_no_performance$"
+      description = "Suppress performance data output (cleaner output when perfdata isn't needed)."
+    }
+  }
+
+  vars.docker_container_connection = "/var/run/docker.sock"
+}
+
+
+###############################################################################
+
+# Check Docker container
+apply Service for (service_name => service_config in host.vars.docker_container) {
+  import "generic-service"
+  name = service_name
+
+  check_command = "_check_docker_container"
+
+  vars += service_config
+
+  if (host.vars.client_endpoint) {
+      command_endpoint = host.vars.client_endpoint
+  }
+}
+
+# Check Docker Service status
+apply Service "Docker Engine" {
+  import "generic-service"
+
+  check_command = "tcp"
+
+  vars.tcp_address = "/run/docker.sock"
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+
+  assign where host.vars.docker
+  assign where host.vars.docker_container
+}
+
+###############################################################################
+# Groups
+
+
+# Host group
+object HostGroup "docker-hosts" {
+    display_name = "Docker Hosts"
+    assign where "docker" in keys(host.vars)
+}
+
+# Service group
+object ServiceGroup "docker-containers" {
+  display_name = "Docker Containers"
+
+  assign where match("_check_docker_container", service.check_command)
+}

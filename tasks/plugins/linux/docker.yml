@@ -1,0 +1,27 @@
+---
+- name: Install the Docker check plugin
+  when: >
+    icinga2_client_vars.docker_container is defined
+    or icinga2_client_vars.docker is defined
+    or ansible_fqdn == icinga2_master_inventory_hostname
+  block:
+    - name: Copy the check_docker plugin
+      ansible.builtin.copy:
+        src: "{{ icinga2_plugins_src_dir }}/check_docker"
+        dest: "{{ icinga2_plugins_dest_dir }}/check_docker"
+        mode: '0750'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+      when: ansible_system == "Linux"
+      ignore_errors: true
+      register: _errors
+
+    - name: Copy the services definition file
+      ansible.builtin.template:
+        src: plugins/linux/docker.conf.j2
+        dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/docker.conf"
+        mode: '0644'
+        owner: "{{ icinga2_user }}"
+        group: "{{ icinga2_group }}"
+      notify: Reload Icinga2
+      when: ansible_system == "Linux"

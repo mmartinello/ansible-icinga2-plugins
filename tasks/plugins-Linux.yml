@@ -48,6 +48,10 @@
 - name: Install generic Linux plugins
   ansible.builtin.include_tasks: plugins/linux/generic-linux.yml
 
+# Docker plugins
+- name: Install Docker plugins
+  ansible.builtin.include_tasks: plugins/linux/docker.yml
+
 # Harisekhon Plugins on master node
 - name: Install Harisekhon plugins
   ansible.builtin.include_tasks: plugins/linux/harisekhon.yml
