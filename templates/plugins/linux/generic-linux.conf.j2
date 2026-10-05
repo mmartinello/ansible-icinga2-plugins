@@ -1012,3 +1012,44 @@ apply Service for (service_name => service_config in host.vars.logstash) {
     command_endpoint = host.vars.client_endpoint
   }
 }
+
+
+###############################################################################
+# Check Linux socket: assigned through 'socket' host var
+
+object CheckCommand "_check_socket" {
+    command = [ PluginDir + "/check_tcp" ]
+
+    arguments = {
+        "-s" = {
+            value = "$ocr4linux_serial$"
+            description = "The licensing serial number to check"
+        }
+        "-d" = {
+            value = "$ocr4linux_program_dir$"
+            description = "The path of the program directory"
+        }
+        "-w" = {
+            value = "$ocr4linux_warning$"
+            description = "The warning percentage level"
+        }
+        "-c" = {
+            value = "$ocr4linux_critical$"
+            description = "The critical percentage level"
+        }
+        "--debug" = {
+            value = "$ocr4linux_debug$"
+            description = "Print debugging info to console"
+        }
+    }
+}
+
+apply Service for (ocr4linux => config in host.vars.ocr4linux) {
+  import "generic-service"
+  check_command = "_check_ocr4linux"
+  vars += config
+
+  if (host.vars.client_endpoint) {
+    command_endpoint = host.vars.client_endpoint
+  }
+}

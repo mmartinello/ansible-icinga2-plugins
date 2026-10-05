@@ -6,11 +6,15 @@ Commands and services for Docker checks:
   - check_docker (https://github.com/timdaman/check_docker)
 */ 
 
+
+###############################################################################
+# Commands
+
 # Check Command definition
 object CheckCommand "_check_docker_container" {
   import "ipv4-or-ipv6"
 
-  command = [ "{{ icinga2_plugins_dest_dir }}/check_docker" ]
+  command = [ "sudo", "{{ icinga2_plugins_dest_dir }}/check_docker" ]
 
   arguments = {
     "--connection" = {
@@ -114,8 +118,22 @@ object CheckCommand "_check_docker_container" {
   vars.docker_container_connection = "/var/run/docker.sock"
 }
 
+object CheckCommand "_check_docker_socket" {
+  command = [ "sudo", PluginDir + "/check_tcp" ]
+
+  arguments = {
+		"-H" = {
+			value =  "$docker_socket_path$"
+			description = "The path of the Docker Service Unix socket (must be an absolute path)."
+		}
+  }
+
+  vars.docker_socket_path = "/var/run/docker.sock"
+}
+
 
 ###############################################################################
+# Services
 
 # Check Docker container
 apply Service for (service_name => service_config in host.vars.docker_container) {
@@ -127,17 +145,15 @@ apply Service for (service_name => service_config in host.vars.docker_container)
   vars += service_config
 
   if (host.vars.client_endpoint) {
-      command_endpoint = host.vars.client_endpoint
+    command_endpoint = host.vars.client_endpoint
   }
 }
 
 # Check Docker Service status
-apply Service "Docker Engine" {
+apply Service "Docker Engine Socket Status" {
   import "generic-service"
 
-  check_command = "tcp"
-
-  vars.tcp_address = "/run/docker.sock"
+  check_command = "_check_docker_socket"
 
   if (host.vars.client_endpoint) {
     command_endpoint = host.vars.client_endpoint
@@ -150,11 +166,10 @@ apply Service "Docker Engine" {
 ###############################################################################
 # Groups
 
-
 # Host group
 object HostGroup "docker-hosts" {
-    display_name = "Docker Hosts"
-    assign where "docker" in keys(host.vars)
+  display_name = "Docker Hosts"
+  assign where "docker" in keys(host.vars)
 }
 
 # Service group

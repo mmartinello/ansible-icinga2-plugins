@@ -18,6 +18,7 @@
         linuxfabrik_monitoring_plugins_commands_dest_path: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}"
         linuxfabrik_monitoring_plugins_icons_install: "{{ icinga2_plugins_icons_install | default(false) }}"
         linuxfabrik_monitoring_plugins_commands_include: false
+        linuxfabrik_monitoring_plugins_upgrade: "{{ icinga2_linuxfabrik_monitoring_plugins_upgrade | default(false) }}"
 
     - name: Deploy Linuxfabrik Monitoring Plugins Services Configuration File
       ansible.builtin.template:

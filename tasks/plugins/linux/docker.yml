@@ -9,12 +9,20 @@
       ansible.builtin.copy:
         src: "{{ icinga2_plugins_src_dir }}/check_docker"
         dest: "{{ icinga2_plugins_dest_dir }}/check_docker"
-        mode: '0750'
-        owner: "{{ icinga2_user }}"
-        group: "{{ icinga2_group }}"
+        owner: root
+        group: root
+        mode: '0755'
       when: ansible_system == "Linux"
       ignore_errors: true
       register: _errors
+
+    - name: Configure sudo
+      ansible.builtin.template:
+        src: sudoers.d/docker.j2
+        dest: /etc/sudoers.d/icinga2-docker
+        owner: root
+        group: root
+        mode: '0440'
 
     - name: Copy the services definition file
       ansible.builtin.template:

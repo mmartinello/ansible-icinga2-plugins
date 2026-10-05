@@ -30,6 +30,7 @@ icinga2_config_root_dir: /etc/icinga2
 icinga2_services_dir: services.d
 icinga2_constants_config_file: constants.conf
 icinga2_force_reload: false
+icinga2_builtin_plugins_dir: /usr/lib/nagios/plugins
 
 
 ###############################################################################
