@@ -62,6 +62,10 @@ apply Service "Disk SMART" {
   check_interval = 8h
   icon_image = "linuxfabrik/disk-smart.png"
 
+  if (host.vars.disk_smart_ignore_wear == true) {
+    vars.linuxfabrik_disk_smart_ignore_wear = true
+  }
+
   assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.disk_smart_enabled
   assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.virtualization_role == "host"
   assign where host.vars.linuxfabrik_monitoring_plugins_installed && host.vars.virtualization_role == "NA"
