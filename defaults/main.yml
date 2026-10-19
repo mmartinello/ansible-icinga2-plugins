@@ -88,19 +88,11 @@ icinga2_harisekhon_plugins_wrapper_cmd_extra:
   - /opt/icinga2-plugins/harisekhon-wrappers:/github/nagios-plugins/wrappers:ro
 
 # Standard plugin command: used for standard plugins that don't need a wrapper
-icinga2_harisekhon_plugins_cmd: >-
-  {{
-    icinga2_harisekhon_plugins_cmd_prefix
-    + [icinga2_harisekhon_plugins_image_name]
-  }}
+icinga2_harisekhon_plugins_cmd: "{{ icinga2_harisekhon_plugins_cmd_prefix + [icinga2_harisekhon_plugins_image_name] }}"
+
 
 # Custom wrapper command: used for all plugins that need a wrapper
-icinga2_harisekhon_plugins_wrapper_cmd: >-
-  {{
-    icinga2_harisekhon_plugins_cmd_prefix
-    + icinga2_harisekhon_plugins_wrapper_cmd_extra
-    + [icinga2_harisekhon_plugins_image_name]
-  }}
+icinga2_harisekhon_plugins_wrapper_cmd: "{{ icinga2_harisekhon_plugins_cmd_prefix + icinga2_harisekhon_plugins_wrapper_cmd_extra + [icinga2_harisekhon_plugins_image_name] }}"
 
 # Install Linuxfabrik Monitoring Plugins
 icinga2_plugins_linuxfabrik: true

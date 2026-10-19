@@ -1,11 +1,21 @@
 # {{ ansible_managed }}
 
+{# Generate the command array for a Hari Sekhon plugin or custom wrapper #}
+{% macro harisekhon_command(executable, wrapper=false) -%}
+{% if wrapper -%}
+{{ (icinga2_harisekhon_plugins_wrapper_cmd + ["/github/nagios-plugins/wrappers/" ~ executable]) | to_json }}
+{% else -%}
+{{ (icinga2_harisekhon_plugins_cmd + [executable]) | to_json }}
+{% endif -%}
+{%- endmacro %}
+
 ###############################################################################
 # Elasticsearch
 
+{% set plugin_executable = "check_elasticsearch.pl" %}
 object CheckCommand "_hk_check_elasticsearch" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -61,9 +71,10 @@ object CheckCommand "_hk_check_elasticsearch" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_cluster_status.pl" %}
 object CheckCommand "_hk_check_elasticsearch_cluster_status" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_status.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -111,9 +122,10 @@ object CheckCommand "_hk_check_elasticsearch_cluster_status" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_cluster_disk_balance.pl" %}
 object CheckCommand "_hk_check_elasticsearch_cluster_disk_balance" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_disk_balance.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -165,9 +177,10 @@ object CheckCommand "_hk_check_elasticsearch_cluster_disk_balance" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_cluster_shard_balance.pl" %}
 object CheckCommand "_hk_check_elasticsearch_cluster_shard_balance" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_shard_balance.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -219,9 +232,10 @@ object CheckCommand "_hk_check_elasticsearch_cluster_shard_balance" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_cluster_shards.pl" %}
 object CheckCommand "_hk_check_elasticsearch_cluster_shards" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_shards.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -289,9 +303,10 @@ object CheckCommand "_hk_check_elasticsearch_cluster_shards" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_cluster_stats.pl" %}
 object CheckCommand "_hk_check_elasticsearch_cluster_stats" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_stats.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -347,9 +362,10 @@ object CheckCommand "_hk_check_elasticsearch_cluster_stats" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_cluster_status_nodes_shards.pl" %}
 object CheckCommand "_hk_check_elasticsearch_cluster_status_nodes_shards" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_cluster_status_nodes_shards.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -421,9 +437,10 @@ object CheckCommand "_hk_check_elasticsearch_cluster_status_nodes_shards" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_data_nodes.pl" %}
 object CheckCommand "_hk_check_elasticsearch_data_nodes" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_data_nodes.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -479,9 +496,10 @@ object CheckCommand "_hk_check_elasticsearch_data_nodes" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_doc_count.pl" %}
 object CheckCommand "_hk_check_elasticsearch_doc_count" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_doc_count.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -541,9 +559,10 @@ object CheckCommand "_hk_check_elasticsearch_doc_count" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_master_node.pl" %}
 object CheckCommand "_hk_check_elasticsearch_master_node" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_master_node.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -591,9 +610,10 @@ object CheckCommand "_hk_check_elasticsearch_master_node" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_node_disk_percent.pl" %}
 object CheckCommand "_hk_check_elasticsearch_node_disk_percent" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_node_disk_percent.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -649,9 +669,10 @@ object CheckCommand "_hk_check_elasticsearch_node_disk_percent" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_nodes.pl" %}
 object CheckCommand "_hk_check_elasticsearch_nodes" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_nodes.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -707,9 +728,10 @@ object CheckCommand "_hk_check_elasticsearch_nodes" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_shards_state_detail.pl" %}
 object CheckCommand "_hk_check_elasticsearch_shards_state_detail" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_shards_state_detail.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -765,9 +787,10 @@ object CheckCommand "_hk_check_elasticsearch_shards_state_detail" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_tasks_pending.pl" %}
 object CheckCommand "_hk_check_elasticsearch_tasks_pending" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_tasks_pending.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -823,10 +846,10 @@ object CheckCommand "_hk_check_elasticsearch_tasks_pending" {
         vars.elasticsearch_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_elasticsearch_tasks_slow.py" %}
 object CheckCommand "_hk_check_elasticsearch_tasks_slow" {
         import "ipv4-or-ipv6"
-        {# Custom wrapper executed inside the Docker container #}
-        command = {{ (icinga2_harisekhon_plugins_wrapper_cmd + ["/github/nagios-plugins/wrappers/check_elasticsearch_tasks_slow.py"]) | to_json }}
+        command = {{ harisekhon_command(plugin_executable, wrapper=true) }}
 
         arguments = {
                 "-H" = {
@@ -1049,9 +1072,10 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
 ###############################################################################
 # Nginx
 
+{% set plugin_executable = "check_nginx_stats.pl" %}
 object CheckCommand "_hk_check_nginx_stats" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_nginx_stats.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1103,9 +1127,10 @@ apply Service for (service_name => service_config in host.vars.nginx) {
 ###############################################################################
 # Redis
 
+{% set plugin_executable = "check_redis_stats.pl" %}
 object CheckCommand "_hk_check_redis_stats" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_redis_stats.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1157,10 +1182,10 @@ object CheckCommand "_hk_check_redis_stats" {
         vars.redis_host = "$check_address$"
 }
 
-
+{% set plugin_executable = "check_redis_write.pl" %}
 object CheckCommand "_hk_check_redis_write" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_redis_write.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1224,9 +1249,9 @@ apply Service for (service_name => service_config in host.vars.redis) {
 ###############################################################################
 # RabbitMQ
 
+{% set plugin_executable = "check_rabbitmq.pl" %}
 object CheckCommand "_hk_check_rabbitmq" {
         import "ipv4-or-ipv6"
-        # command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_rabbitmq.py" ]
         command = [ "{{ icinga2_plugins_dest_dir }}/harisekhon-wrappers/harisekhon-rabbitmq_check-fix.sh" ]
 
         arguments = {
@@ -1319,9 +1344,10 @@ object CheckCommand "_hk_check_rabbitmq" {
         vars.rabbitmq_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_rabbitmq_healthchecks.pl" %}
 object CheckCommand "_hk_check_rabbitmq_healthchecks" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_rabbitmq_healthchecks.py" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1382,9 +1408,10 @@ apply Service for (service_name => service_config in host.vars.rabbitmq) {
 ###############################################################################
 # Amazon S3
 
+{% set plugin_executable = "check_aws_s3_file.pl" %}
 object CheckCommand "_hk_check_aws_s3_file" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_aws_s3_file.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1451,9 +1478,10 @@ object CheckCommand "_hk_check_aws_s3_file" {
 ###############################################################################
 # InfluxDB
 
+{% set plugin_executable = "check_influxdb_api_ping.pl" %}
 object CheckCommand "_hk_check_influxdb_api_ping" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_influxdb_api_ping.py" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1496,9 +1524,10 @@ object CheckCommand "_hk_check_influxdb_api_ping" {
 ###############################################################################
 # Logstash
 
+{% set plugin_executable = "check_logstash_status.pl" %}
 object CheckCommand "_hk_check_logstash_status" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_logstash_status.py" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1546,9 +1575,10 @@ apply Service for (service_name => service_config in host.vars.logstash) {
 ###############################################################################
 # Memcached
 
+{% set plugin_executable = "check_memcached_write.pl" %}
 object CheckCommand "_hk_check_memcached_write" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_memcached_write.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1584,9 +1614,10 @@ object CheckCommand "_hk_check_memcached_write" {
         vars.memcached_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_memcached_stats.pl" %}
 object CheckCommand "_hk_check_memcached_stats" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_memcached_stats.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1621,9 +1652,10 @@ object CheckCommand "_hk_check_memcached_stats" {
 ###############################################################################
 # MySQL Query
 
+{% set plugin_executable = "check_mysql_query.pl" %}
 object CheckCommand "_hk_check_mysql_query" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_mysql_query.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1722,9 +1754,10 @@ object CheckCommand "_hk_check_mysql_query" {
 ###############################################################################
 # Solr
 
+{% set plugin_executable = "check_solr_api_ping.pl" %}
 object CheckCommand "_hk_check_solr_api_ping" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_solr_api_ping.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1784,9 +1817,10 @@ object CheckCommand "_hk_check_solr_api_ping" {
         vars.solr_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_solr_write.pl" %}
 object CheckCommand "_hk_check_solr_write" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_solr_write.pl" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1857,9 +1891,10 @@ object CheckCommand "_hk_check_solr_write" {
 ###############################################################################
 # Vault
 
+{% set plugin_executable = "check_vault_health.pl" %}
 object CheckCommand "_hk_check_vault_health" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_vault_health.py" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
@@ -1917,6 +1952,7 @@ apply Service for (service_name => service_config in host.vars.vault) {
 ###############################################################################
 # Grafana
 
+{% set plugin_executable = "check_grafana_health.pl" %}
 object CheckCommand "_hk_check_grafana_health" {
         import "ipv4-or-ipv6"
         command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_grafana_health.py" ]
@@ -1959,9 +1995,10 @@ object CheckCommand "_hk_check_grafana_health" {
         vars.grafana_host = "$check_address$"
 }
 
+{% set plugin_executable = "check_grafana_version.pl" %}
 object CheckCommand "_hk_check_grafana_version" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_grafana_version.py" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
