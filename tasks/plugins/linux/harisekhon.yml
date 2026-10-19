@@ -17,20 +17,29 @@
       community.docker.docker_image:
         name: harisekhon/nagios-plugins
         source: pull
-
-    - name: Deploy fix for RabbitMQ check plugin
+    
+    - name: Deploy Harisekhon wrapper scripts README file
       ansible.builtin.template:
-        src: templates/plugins/linux/harisekhon-rabbitmq_check-fix.sh.j2
-        dest: "{{ icinga2_plugins_dest_dir }}/harisekhon-rabbitmq_check-fix.sh"
-        mode: "0750"
-        owner: "{{ icinga2_user }}"
-        group: "{{ icinga2_group }}"
+        src: "templates/plugins/linux/harisekhon-wrappers/README.txt"
+        dest: "{{ icinga2_plugins_dest_dir }}/harisekhon-wrappers/README.txt"
+        mode: "0640"
+        owner: root
+        group: root
+
+    - name: Deploy Harisekhon wrapper scripts
+      ansible.builtin.template:
+        src: "{{ item }}"
+        dest: "{{ icinga2_plugins_dest_dir }}/harisekhon-wrappers/{{ item | basename | regex_replace('\\.j2$', '') }}"
+        mode: "0755"
+        owner: root
+        group: root
+      loop: "{{ lookup('ansible.builtin.fileglob', 'templates/plugins/linux/harisekhon-wrappers/*.j2', wantlist=True) }}"
 
     - name: Deploy Harisekhon Plugins Commands Configuration File
       ansible.builtin.template:
         src: "templates/plugins/linux/harisekhon.conf.j2"
         dest: "{{ icinga2_config_root_dir }}/{{ icinga2_services_dir }}/harisekhon.conf"
         mode: "0644"
-        owner: "{{ icinga2_user }}"
-        group: "{{ icinga2_group }}"
+        owner: root
+        group: root
       notify: Reload Icinga2

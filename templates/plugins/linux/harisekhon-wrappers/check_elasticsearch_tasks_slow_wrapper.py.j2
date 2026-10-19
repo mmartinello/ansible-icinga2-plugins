@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Wrapper for Hari Sekhon check_elasticsearch_tasks_slow.py.
+
+Adds repeatable --ignore REGEX options to exclude Elasticsearch
+tasks by their action name.
+
+The original plugin remains unchanged and handles:
+- Elasticsearch API requests and authentication
+- Warning and critical thresholds
+- Nagios exit codes
+- Performance data
+- Original command-line options
+
+Ignored tasks are reported in the output only when at least
+one task is actually excluded.
+"""
+
+import copy
+import importlib.util
+import re
+from collections import Counter
+
+
+ORIGINAL_PLUGIN = (
+    "/github/nagios-plugins/check_elasticsearch_tasks_slow.py"
+)
+
+
+# Load the original Hari Sekhon plugin without modifying it.
+spec = importlib.util.spec_from_file_location(
+    "check_elasticsearch_tasks_slow_original",
+    ORIGINAL_PLUGIN,
+)
+
+if spec is None or spec.loader is None:
+    raise RuntimeError(
+        "Cannot load original Elasticsearch plugin: {}".format(
+            ORIGINAL_PLUGIN
+        )
+    )
+
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+
+
+class CheckElasticsearchTasksSlowWrapper(
+    module.CheckElasticsearchTasksSlow
+):
+    """
+    Extends the original plugin with repeatable regex exclusions.
+    """
+
+    def add_options(self):
+        super().add_options()
+
+        self.add_opt(
+            "--ignore",
+            action="append",
+            help=(
+                "Ignore tasks whose action matches REGEX. "
+                "Can be specified multiple times."
+            ),
+        )
+
+    def process_options(self):
+        super().process_options()
+
+        self.ignore_patterns = []
+
+        for expression in self.get_opt("ignore") or []:
+            try:
+                self.ignore_patterns.append(
+                    re.compile(expression)
+                )
+            except re.error as exc:
+                self.usage(
+                    "Invalid --ignore regex {!r}: {}".format(
+                        expression,
+                        exc,
+                    )
+                )
+
+    def parse_json(self, json_data):
+        """
+        Filter ignored tasks before passing the JSON response
+        to the original plugin.
+
+        Preserve original output and performance data unless
+        one or more tasks are actually ignored.
+        """
+
+        # No exclusions: preserve original plugin behavior.
+        if not self.ignore_patterns:
+            return super().parse_json(json_data)
+
+        filtered_data = copy.deepcopy(json_data)
+        ignored_actions = Counter()
+
+        selected_node = self.get_opt("node")
+
+        for node_id, node in filtered_data.get(
+            "nodes", {}
+        ).items():
+
+            # Respect the original plugin's node selection.
+            if selected_node:
+                if selected_node not in (
+                    node_id,
+                    node["host"],
+                    node["ip"].split(":")[0],
+                    node["name"],
+                ):
+                    continue
+
+            tasks = node.get("tasks", {})
+            filtered_tasks = {}
+
+            for task_id, task in tasks.items():
+                action = task.get("action", "")
+
+                # Exclude tasks matching any ignore regex.
+                if any(
+                    pattern.search(action)
+                    for pattern in self.ignore_patterns
+                ):
+                    ignored_actions[action] += 1
+                    continue
+
+                filtered_tasks[task_id] = task
+
+            node["tasks"] = filtered_tasks
+
+        # Delegate status, thresholds and perfdata
+        # to the original Hari Sekhon plugin.
+        result = super().parse_json(filtered_data)
+
+        # No matching tasks: preserve original output.
+        if not ignored_actions:
+            return result
+
+        ignored_count = sum(ignored_actions.values())
+
+        # Format ignored actions, including duplicates.
+        details = ", ".join(
+            "{}{}".format(
+                action,
+                " x{}".format(count) if count > 1 else ""
+            )
+            for action, count in sorted(
+                ignored_actions.items()
+            )
+        )
+
+        ignored_message = (
+            ", ignored {} tasks ({})".format(
+                ignored_count,
+                details,
+            )
+        )
+
+        # Insert summary before the performance data.
+        # Do not change the original perfdata.
+        if " | " in self.msg:
+            message, perfdata = self.msg.split(" | ", 1)
+
+            self.msg = (
+                message
+                + ignored_message
+                + " | "
+                + perfdata
+            )
+        else:
+            self.msg += ignored_message
+
+        return result
+
+
+if __name__ == "__main__":
+    CheckElasticsearchTasksSlowWrapper().main()

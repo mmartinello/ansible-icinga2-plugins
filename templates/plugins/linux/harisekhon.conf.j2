@@ -825,7 +825,7 @@ object CheckCommand "_hk_check_elasticsearch_tasks_pending" {
 
 object CheckCommand "_hk_check_elasticsearch_tasks_slow" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_tasks_slow.py" ]
+        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_tasks_slow_wrapper.py" ]
 
         arguments = {
                 "-H" = {
@@ -879,6 +879,11 @@ object CheckCommand "_hk_check_elasticsearch_tasks_slow" {
                 "--list-tasks" = {
                         set_if = "$elasticsearch_tasks_slow_list_tasks$"
                         description = "List tasks"
+                }
+                "--ignore" = {
+                        value = "$elasticsearch_tasks_slow_ignore$"
+                        repeat_key = true
+                        description = "Regex patterns for Elasticsearch task actions to ignore"
                 }
                 "-t" = {
                         value = "$elasticsearch_timeout$"
@@ -1221,7 +1226,7 @@ apply Service for (service_name => service_config in host.vars.redis) {
 object CheckCommand "_hk_check_rabbitmq" {
         import "ipv4-or-ipv6"
         # command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_rabbitmq.py" ]
-        command = [ "{{ icinga2_plugins_dest_dir }}/harisekhon-rabbitmq_check-fix.sh" ]
+        command = [ "{{ icinga2_plugins_dest_dir }}/harisekhon-wrappers/harisekhon-rabbitmq_check-fix.sh" ]
 
         arguments = {
                 "-H" = {
