@@ -825,7 +825,8 @@ object CheckCommand "_hk_check_elasticsearch_tasks_pending" {
 
 object CheckCommand "_hk_check_elasticsearch_tasks_slow" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_elasticsearch_tasks_slow_wrapper.py" ]
+        {# Custom wrapper executed inside the Docker container #}
+        command = {{ (icinga2_harisekhon_plugins_wrapper_cmd + ["/github/nagios-plugins/wrappers/check_elasticsearch_tasks_slow.py"]) | to_json }}
 
         arguments = {
                 "-H" = {
