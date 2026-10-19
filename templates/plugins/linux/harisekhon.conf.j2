@@ -1955,7 +1955,7 @@ apply Service for (service_name => service_config in host.vars.vault) {
 {% set plugin_executable = "check_grafana_health.pl" %}
 object CheckCommand "_hk_check_grafana_health" {
         import "ipv4-or-ipv6"
-        command = [ {{ icinga2_harisekhon_plugins_cmd }} "check_grafana_health.py" ]
+        command = {{ harisekhon_command(plugin_executable) }}
 
         arguments = {
                 "-H" = {
