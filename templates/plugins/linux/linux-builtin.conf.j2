@@ -64,7 +64,7 @@ apply Service for (http_vhost => config in host.vars.http_vhosts) {
 
   vars += config
 
-  if (host.vars.client_endpoint) {
+  if (host.vars.client_endpoint && vars.remote_check) {
     command_endpoint = host.vars.client_endpoint
   }
 }
