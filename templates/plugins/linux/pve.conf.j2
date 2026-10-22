@@ -517,7 +517,7 @@ apply Service "Proxmox VE - KSM Usage" {
 
   # Unit
   if (vars.ksm_unit) {
-    vars.pve_critical = vars.ksm_unit
+    vars.pve_unit = vars.ksm_unit
   } else {
     vars.pve_unit = "gb"
   }
