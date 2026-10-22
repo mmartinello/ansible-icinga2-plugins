@@ -1037,6 +1037,13 @@ apply Service for (service_name => service_config in host.vars.elasticsearch) {
   enable_notifications = false
 
   vars += service_config
+
+  # Override thresholds if Elasticsearch is standalone
+  # (defined with vars.elasticsearch_standalone = true)
+  if (vars.elasticsearch_standalone) {
+    vars.elasticsearch_nodes_warning = 1
+    vars.elasticsearch_nodes_critical = 1
+  }
 }
 
 # Elasticsearch shards state detail: assigned through 'elasticsearch' host var
